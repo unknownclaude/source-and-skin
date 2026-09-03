@@ -96,6 +96,39 @@ photography:
 All imagery goes through `next/image` with explicit `alt` text. Decorative
 images pass `alt=""` with `aria-hidden` — keep that distinction when swapping.
 
+### Grading real photography into the palette
+
+Net sponges photograph vivid — they genuinely are bright, and they are usually
+shot outdoors against whatever happened to be behind them. Dropped in raw, that
+fights the cream/charcoal/earth system and reads as a snapshot rather than a
+brand shot.
+
+`scripts/process-photo.mjs` crops, grades and veils a photo into the palette:
+
+```bash
+node scripts/process-photo.mjs ~/photo.jpg --out net-sponge-regular \
+  --preset product --crop 0.05,0.18,0.42,0.42 --sat 0.72 --veil 0.10 --veilcolor clay
+```
+
+| Flag          | Does                                                          |
+| ------------- | ------------------------------------------------------------- |
+| `--preset`    | `product` (4:5), `wide` (16:9), `band`, `square`               |
+| `--crop`      | `x,y,w,h` as fractions of 0–1 — cut away fences, posts, hands  |
+| `--sat`       | saturation multiplier; 0.55–0.75 is the useful range           |
+| `--warm`      | strength of the warm cast (default 0.5)                        |
+| `--veil`      | opacity of the colour wash — the step that unifies             |
+| `--veilcolor` | `cream` (default), or an accent name for spotlight shots       |
+
+Two rules matter more than the flags:
+
+- **Crop the background out.** A garden fence, a post, or a string of lights
+  cannot be graded into luxury. Crop to the fibre.
+- **One colour per frame.** A rail of twenty multicoloured nets is a market
+  stall; a single net on a plain ground is a product. Keep that one colour
+  vivid and let the accent ground frame it — that reads as intentional. Save
+  the heavy desaturation for the wide editorial bands, where the photo is
+  texture behind type rather than the subject itself.
+
 ### Hero video
 
 The hero renders its poster image alone until you give it a video. Drop a file
