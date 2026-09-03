@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-cream text-charcoal font-sans antialiased;
+  }
+
+  /* Visible, on-brand focus ring everywhere rather than the UA default. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-charcoal ring-offset-2 ring-offset-cream;
+  }
+
+  ::selection {
+    @apply bg-charcoal text-cream;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    @apply text-eyebrow font-sans uppercase tracking-[0.22em] text-charcoal/55;
+  }
+
+  .edge {
+    @apply mx-auto w-full max-w-edge px-gutter;
+  }
+
+  .rule {
+    @apply h-px w-full bg-charcoal/12;
+  }
+
+  /* Understated editorial link: underline grows from the left on hover. */
+  .link-underline {
+    @apply relative inline-block;
+  }
+
+  .link-underline::after {
+    content: "";
+    @apply absolute -bottom-0.5 left-0 h-px w-full origin-right scale-x-0 bg-current transition-transform duration-500 ease-editorial;
+  }
+
+  .link-underline:hover::after,
+  .link-underline:focus-visible::after {
+    @apply origin-left scale-x-100;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
