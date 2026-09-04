@@ -51,21 +51,26 @@ export type Product = {
   images: { main: string; alt: string; gallery: string[] };
   /** Optional shipping copy override; falls back to `defaultShippingCopy`. */
   shipping?: string;
-  /** Surfaced in the homepage featured row, in this order. */
+  /** Surfaced in the homepage featured row. */
   featured?: boolean;
+  /**
+   * Position within the featured row. Lower sorts first, so the hero does not
+   * depend on where a product happens to sit in the array.
+   */
+  featuredRank?: number;
   /** Stocked colours. Omit for products that ship in one colour only. */
   colorways?: Colorway[];
 };
 
 export const defaultShippingCopy =
-  "Dispatched from our studio within two business days. Free standard shipping on Australian orders over $45; flat $9.95 below that. International shipping is calculated at checkout. If your order takes more than 30 days to arrive we refund the shipping — see our shipping page. Everything ships in unbleached, plastic-free packaging.";
+  "Dispatched from our studio within two business days. Free standard shipping on Australian orders over $40; flat $9.95 below that. International shipping is calculated at checkout. If your order takes more than 30 days to arrive we refund the shipping — see our shipping page. Everything ships in unbleached, plastic-free packaging.";
 
 export const products: Product[] = [
   {
     slug: "african-net-sponge-regular",
     name: "African Net Sponge — Regular",
     category: "sponge",
-    price: 14,
+    price: 22,
     tagline: "The authentic West African exfoliant that reaches everywhere.",
     description:
       "A hand-knotted mesh sponge in the West African tradition — long enough to reach the whole back, open enough to dry in hours rather than days. The weave is deliberately coarse: it lifts dead skin, breaks down body oil and turns a pea-sized amount of soap into a full lather. It arrives stiff, softens after the first wash, and keeps its structure for a year or more of daily use.",
@@ -85,6 +90,7 @@ export const products: Product[] = [
       ],
     },
     featured: true,
+    featuredRank: 2,
     colorways: [
       { name: "White", swatch: "#F2EFE9", image: "/images/sponge-white.jpg" },
       { name: "Red", swatch: "#C4231F", image: "/images/sponge-red.jpg" },
@@ -98,7 +104,7 @@ export const products: Product[] = [
     slug: "african-net-sponge-handle",
     name: "African Net Sponge with Handle",
     category: "sponge",
-    price: 18,
+    price: 28,
     tagline: "The authentic weave, with a braided handle at each end.",
     description:
       "The same hand-knotted mesh with a braided cord stitched to each end. The handles are the whole point: they let you pull the sponge taut across your own back in one motion, at whatever tension you want, without the mesh slipping out of a soapy grip. Chosen most often by anyone who has spent years fighting to reach between their shoulder blades.",
@@ -129,7 +135,7 @@ export const products: Product[] = [
     slug: "miswak-stick-single",
     name: "Miswak Stick — Single",
     category: "miswak",
-    price: 9,
+    price: 8,
     tagline: "An authentic toothbrush that grows on a tree.",
     description:
       "A cut root of Salvadora persica — the arāk tree — used for oral care across East Africa, the Arabian Peninsula and South Asia for well over a thousand years. Peel back an inch of bark, chew until the fibres splay into bristles, and you have a brush that carries its own cleaning compounds. It tastes faintly of horseradish and mustard the first time. That is the plant, not a flaw.",
@@ -149,12 +155,13 @@ export const products: Product[] = [
       ],
     },
     featured: true,
+    featuredRank: 3,
   },
   {
     slug: "miswak-stick-3-pack",
     name: "Miswak Stick — 3-Pack",
     category: "miswak",
-    price: 22,
+    price: 20,
     tagline: "A season of authentic sticks, sealed one at a time.",
     description:
       "Three sticks, each vacuum-sealed on its own so the two you are not using keep their moisture. A dried-out miswak frays instead of splaying and loses most of what makes it worth using — sealing individually is the whole point of buying in threes. Roughly three months of daily use, and the per-stick price is the lowest we offer outside the bundle.",
@@ -183,14 +190,14 @@ export const products: Product[] = [
     slug: "ritual-bundle",
     name: "The Ritual Bundle",
     category: "bundle",
-    price: 28,
-    tagline: "Both ends of an authentic daily ritual, in one box.",
+    price: 27,
+    tagline: "The smallest complete version of an authentic ritual.",
     description:
-      "One regular net sponge and three miswak sticks — the morning and the evening, packed together and priced below the sum of its parts. This is how most people start with us, and how nearly everyone ends up: the two objects share a logic, which is that the simplest tool tends to be the one that has already been in use for centuries.",
+      "One hand-knotted net sponge and one Salvadora persica stick — the smallest complete version of the ritual, for anyone who wants to try both before committing to either. A month of miswak, a year of sponge. If you already know you want this, The Season gives you three months of miswak for $9 more.",
     howToUse:
       "Follow each product's own ritual. In practice most people land on the same rhythm: miswak first thing and last thing, sponge in the shower between. Keep the sponge on a hook and the sticks in a dry glass, both within arm's reach — the ritual survives on convenience more than on intention.",
     materials:
-      "One hand-knotted nylon net sponge (27\" × 11\") and three individually sealed Salvadora persica roots (6\" each). Packed in an unbleached board box with no plastic window, tape or filler.",
+      "One hand-knotted nylon net sponge (27\" × 11\") and one vacuum-sealed Salvadora persica root (6\"). Packed in an unbleached board box with no plastic window, tape or filler.",
     accentColor: "#8C4A3B",
     images: {
       main: "/images/ritual-bundle.jpg",
@@ -202,7 +209,64 @@ export const products: Product[] = [
         "/images/sponge-white-roll.jpg",
       ],
     },
+  },
+  {
+    // The hero. Highest contribution of any product a first-time customer is
+    // realistically going to buy, and the composition needs no explaining:
+    // one sponge, three months of miswak.
+    slug: "the-season",
+    name: "The Season",
+    category: "bundle",
+    price: 36,
+    tagline: "One sponge, three months of authentic miswak.",
+    description:
+      "A hand-knotted African net sponge and three individually sealed Salvadora persica sticks — the two objects that make up the ritual, in the quantities they are actually used in. The sponge lasts a year. Three sticks last a season. Buy this once and both ends of your day are handled until autumn. This is where most people start, and it is priced accordingly: $6 less than buying the same things separately.",
+    howToUse:
+      "Follow each product's own ritual. In practice most people land on the same rhythm: miswak first thing and last thing, sponge in the shower between. Keep the sponge on a hook and the sticks in a dry glass, both within arm's reach — the ritual survives on convenience more than on intention.",
+    materials:
+      "One hand-knotted nylon net sponge (27\" × 11\") and three individually sealed Salvadora persica roots (6\" each). Packed in an unbleached board box with no plastic window, tape or filler.",
+    accentColor: "#6B7259",
+    // TODO(photography): this is the hero product and it has no photograph of
+    // its own — currently borrowing the one-sponge-one-stick bundle shot. A
+    // frame with three sticks beside the sponge is the highest-value photo
+    // still missing from the catalogue.
+    images: {
+      main: "/images/ritual-bundle.jpg",
+      alt: "/images/lifestyle-counter.jpg",
+      gallery: [
+        "/images/ritual-bundle.jpg",
+        "/images/lifestyle-counter.jpg",
+        "/images/miswak-single.jpg",
+        "/images/sponge-red.jpg",
+      ],
+    },
     featured: true,
+    featuredRank: 1,
+  },
+  {
+    slug: "the-full-ritual",
+    name: "The Full Ritual",
+    category: "bundle",
+    price: 58,
+    tagline: "Every authentic object we make, in one box.",
+    description:
+      "Both sponges and a season of miswak. The plain net sponge for everyday washing, the handled one for reaching between your own shoulder blades, and three individually sealed Salvadora persica sticks for three months of mornings. The two sponges are not a duplicate — they do different jobs. The handled sponge is pulled taut across the back with a cord in each hand; the plain one is worked by hand everywhere else. $12 less than buying the three separately.",
+    howToUse:
+      "Hang both sponges where they can dry — the handled one by a cord, the plain one over a rail. Keep the sticks in a dry glass. Use the handled sponge for your back and the plain one for everything else; most people who own both stop thinking about which is which within a week.",
+    materials:
+      "One hand-knotted nylon net sponge (27\" × 11\"), one net sponge with braided cord handles (33\" × 11\"), and three individually sealed Salvadora persica roots (6\" each). Packed in an unbleached board box with no plastic window, tape or filler.",
+    accentColor: "#8C4A3B",
+    // TODO(photography): needs a frame with both sponges and three sticks.
+    images: {
+      main: "/images/ritual-bundle.jpg",
+      alt: "/images/sponge-handle-purple.jpg",
+      gallery: [
+        "/images/ritual-bundle.jpg",
+        "/images/sponge-handle-purple.jpg",
+        "/images/sponge-red.jpg",
+        "/images/miswak-single.jpg",
+      ],
+    },
   },
 ];
 
@@ -218,7 +282,14 @@ export function getProduct(slug: string): Product | undefined {
 }
 
 export function getFeaturedProducts(): Product[] {
-  return products.filter((product) => product.featured);
+  return products
+    .filter((product) => product.featured)
+    .sort((a, b) => (a.featuredRank ?? 99) - (b.featuredRank ?? 99));
+}
+
+/** The product the homepage leads on. */
+export function getHeroProduct(): Product {
+  return getFeaturedProducts()[0];
 }
 
 /**

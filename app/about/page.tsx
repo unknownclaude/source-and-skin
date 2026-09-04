@@ -100,14 +100,14 @@ export default function AboutPage() {
         <Reveal className="mx-auto max-w-2xl text-center">
           <h2 className="font-serif text-display-md">Start where most people start.</h2>
           <p className="mt-6 text-base leading-relaxed text-charcoal/65">
-            The bundle is one sponge and three sticks — both ends of the day, priced below the sum
-            of its parts.
+            The Season is one sponge and three sticks — a year of one, a season of the other,
+            priced below the sum of its parts.
           </p>
           <Link
-            href="/products/ritual-bundle"
+            href="/products/the-season"
             className="mt-9 inline-flex items-center gap-3 rounded-full bg-charcoal px-8 py-4 text-[0.72rem] uppercase tracking-[0.2em] text-cream transition-transform duration-500 ease-editorial hover:-translate-y-0.5"
           >
-            Shop the ritual bundle
+            Shop The Season
             <span aria-hidden>&rarr;</span>
           </Link>
         </Reveal>
