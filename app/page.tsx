@@ -28,7 +28,7 @@ export default function HomePage() {
         supporting="African net sponges and Salvadora persica miswak — two objects that have outlasted every trend sent to replace them."
         ctaLabel="Shop the collection"
         ctaHref="/shop"
-        posterSrc="/images/placeholder-hero-poster.jpg"
+        posterSrc="/images/hero-poster.jpg"
         posterAlt="A net sponge and two miswak sticks resting on a deep clay ground"
         videoSrc={site.heroVideo}
       />

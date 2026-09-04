@@ -139,13 +139,13 @@ export const products: Product[] = [
       "A single root of Salvadora persica, air-dried and vacuum-sealed to hold its moisture. Approximately 6\" long, ½\" diameter. Nothing added: no flavouring, no preservative, no wax.",
     accentColor: "#6B7259",
     images: {
-      main: "/images/placeholder-miswak-single.jpg",
-      alt: "/images/placeholder-miswak-single-alt.jpg",
+      main: "/images/miswak-single.jpg",
+      alt: "/images/ritual-bundle.jpg",
       gallery: [
-        "/images/placeholder-miswak-single.jpg",
-        "/images/placeholder-miswak-single-alt.jpg",
+        "/images/miswak-single.jpg",
+        "/images/ritual-bundle.jpg",
+        "/images/lifestyle-counter.jpg",
         "/images/placeholder-texture-bark.jpg",
-        "/images/placeholder-lifestyle-counter.jpg",
       ],
     },
     featured: true,
@@ -163,14 +163,19 @@ export const products: Product[] = [
     materials:
       "Three roots of Salvadora persica, air-dried, individually vacuum-sealed. Approximately 6\" long each. No flavouring, preservative or wax.",
     accentColor: "#C57A54",
+    // TODO(photography): the only miswak shot in hand is a single stick, so the
+    // 3-pack currently shows one. A composite of three copies was tried and
+    // discarded — repeated grain reads as fake. This needs a genuine
+    // three-stick flat-lay before launch; the card says 3-Pack and the
+    // photograph should agree with it.
     images: {
-      main: "/images/placeholder-miswak-3pack.jpg",
-      alt: "/images/placeholder-miswak-3pack-alt.jpg",
+      main: "/images/miswak-single.jpg",
+      alt: "/images/lifestyle-counter.jpg",
       gallery: [
-        "/images/placeholder-miswak-3pack.jpg",
-        "/images/placeholder-miswak-3pack-alt.jpg",
+        "/images/miswak-single.jpg",
+        "/images/lifestyle-counter.jpg",
+        "/images/ritual-bundle.jpg",
         "/images/placeholder-texture-bark.jpg",
-        "/images/placeholder-lifestyle-counter.jpg",
       ],
     },
   },
@@ -188,13 +193,13 @@ export const products: Product[] = [
       "One hand-knotted nylon net sponge (27\" × 11\") and three individually sealed Salvadora persica roots (6\" each). Packed in an unbleached board box with no plastic window, tape or filler.",
     accentColor: "#8C4A3B",
     images: {
-      main: "/images/placeholder-ritual-bundle.jpg",
-      alt: "/images/placeholder-ritual-bundle-alt.jpg",
+      main: "/images/ritual-bundle.jpg",
+      alt: "/images/lifestyle-counter.jpg",
       gallery: [
-        "/images/placeholder-ritual-bundle.jpg",
-        "/images/placeholder-ritual-bundle-alt.jpg",
-        "/images/placeholder-texture-fiber.jpg",
-        "/images/placeholder-lifestyle-bath.jpg",
+        "/images/ritual-bundle.jpg",
+        "/images/lifestyle-counter.jpg",
+        "/images/miswak-single.jpg",
+        "/images/sponge-white-roll.jpg",
       ],
     },
     featured: true,

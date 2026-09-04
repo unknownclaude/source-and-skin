@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     images: [
       {
-        url: "/images/placeholder-hero-poster.jpg",
+        url: "/images/hero-poster.jpg",
         width: 1920,
         height: 1080,
         alt: `${site.name} — net sponge and miswak on a clay-toned ground`,
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${site.name} — African Net Sponges & Miswak`,
     description: site.description,
-    images: ["/images/placeholder-hero-poster.jpg"],
+    images: ["/images/hero-poster.jpg"],
   },
   robots: { index: true, follow: true },
 };
