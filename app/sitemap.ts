@@ -4,7 +4,18 @@ import { products } from "@/data/products";
 import { site } from "@/data/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const staticRoutes = ["", "/shop", "/about", "/sourcing", "/contact", "/faq"].map((route) => ({
+  const staticRoutes = [
+    "",
+    "/shop",
+    "/about",
+    "/sourcing",
+    "/contact",
+    "/faq",
+    "/shipping",
+    "/returns",
+    "/privacy",
+    "/terms",
+  ].map((route) => ({
     url: `${site.domain}${route}`,
     lastModified: new Date(),
     changeFrequency: "monthly" as const,

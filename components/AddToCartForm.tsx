@@ -60,7 +60,7 @@ export default function AddToCartForm({ product }: { product: Product }) {
       </div>
 
       <p className="mt-4 text-xs leading-relaxed text-charcoal/50">
-        Free US shipping over $45. Ships plastic-free within two business days.
+        Free Australian shipping over $45. Ships plastic-free within two business days.
       </p>
     </form>
   );

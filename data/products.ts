@@ -58,7 +58,7 @@ export type Product = {
 };
 
 export const defaultShippingCopy =
-  "Dispatched from our studio within two business days. Free standard shipping on orders over $45 within the US; flat $5 below that. International shipping is calculated at checkout and typically arrives within 7–14 business days. Everything ships in unbleached, plastic-free packaging.";
+  "Dispatched from our studio within two business days. Free standard shipping on Australian orders over $45; flat $9.95 below that. International shipping is calculated at checkout. If your order takes more than 30 days to arrive we refund the shipping — see our shipping page. Everything ships in unbleached, plastic-free packaging.";
 
 export const products: Product[] = [
   {

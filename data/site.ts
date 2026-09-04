@@ -48,6 +48,15 @@ export const footerNav: { heading: string; links: NavLink[] }[] = [
     ],
   },
   {
+    heading: "Policies",
+    links: [
+      { href: "/shipping", label: "Shipping & delivery" },
+      { href: "/returns", label: "Returns & refunds" },
+      { href: "/privacy", label: "Privacy" },
+      { href: "/terms", label: "Terms of sale" },
+    ],
+  },
+  {
     heading: "Shop",
     links: [
       { href: "/shop", label: "All products" },

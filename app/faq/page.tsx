@@ -80,12 +80,12 @@ const groups = [
       {
         title: "When will my order ship?",
         content:
-          "Within two business days of ordering. US orders over $45 ship free; below that it is a flat $5. International shipping is calculated at checkout and typically arrives in 7–14 business days.",
+          "Within two business days of ordering. Australian orders over $45 ship free; below that it is a flat $9.95. International shipping is calculated at checkout. If a parcel takes more than 30 days to reach you, we refund the shipping in full.",
       },
       {
         title: "What is your returns policy?",
         content:
-          "Unopened items can be returned within 30 days for a full refund — write to us and we will send instructions. For hygiene reasons we cannot take back opened miswak sleeves or used sponges, but if something arrives damaged or not as described, tell us and we will replace it.",
+          "Our goods come with guarantees that cannot be excluded under the Australian Consumer Law — if something is faulty or not as described you are entitled to a repair, replacement or refund, and for a major failure the choice is yours. Separately, we accept change-of-mind returns on unopened items within 30 days. The full policy is on our returns page.",
       },
       {
         title: "Do you sell wholesale?",
