@@ -13,6 +13,22 @@
 
 export type ProductCategory = "sponge" | "miswak" | "bundle";
 
+/**
+ * A colour a product is stocked in.
+ *
+ * `swatch` is what the dot on the card renders, so a colourway can be listed
+ * before its photography exists. `image` is optional for exactly that reason —
+ * where it is absent the gallery falls back to the product's main shot, and the
+ * swatch still tells the customer the colour is available.
+ */
+export type Colorway = {
+  name: string;
+  /** Hex for the selector dot. */
+  swatch: string;
+  /** 4:5 product shot in this colour. Omit until the photograph exists. */
+  image?: string;
+};
+
 export type Product = {
   slug: string;
   name: string;
@@ -37,6 +53,8 @@ export type Product = {
   shipping?: string;
   /** Surfaced in the homepage featured row, in this order. */
   featured?: boolean;
+  /** Stocked colours. Omit for products that ship in one colour only. */
+  colorways?: Colorway[];
 };
 
 export const defaultShippingCopy =
@@ -48,7 +66,7 @@ export const products: Product[] = [
     name: "African Net Sponge — Regular",
     category: "sponge",
     price: 14,
-    tagline: "The long-handled exfoliant that reaches everywhere.",
+    tagline: "The authentic West African exfoliant that reaches everywhere.",
     description:
       "A hand-knotted mesh sponge in the West African tradition — long enough to reach the whole back, open enough to dry in hours rather than days. The weave is deliberately coarse: it lifts dead skin, breaks down body oil and turns a pea-sized amount of soap into a full lather. It arrives stiff, softens after the first wash, and keeps its structure for a year or more of daily use.",
     howToUse:
@@ -57,47 +75,64 @@ export const products: Product[] = [
       "100% nylon mesh, knotted by hand into a single continuous tube. Undyed and unbleached. Roughly 27\" × 11\" relaxed. Contains no rubber, latex or foam.",
     accentColor: "#C57A54",
     images: {
-      main: "/images/placeholder-net-sponge-regular.jpg",
-      alt: "/images/placeholder-net-sponge-regular-alt.jpg",
+      main: "/images/sponge-pink.jpg",
+      alt: "/images/sponge-blue.jpg",
       gallery: [
-        "/images/placeholder-net-sponge-regular.jpg",
-        "/images/placeholder-net-sponge-regular-alt.jpg",
-        "/images/placeholder-texture-fiber.jpg",
-        "/images/placeholder-lifestyle-bath.jpg",
+        "/images/sponge-pink.jpg",
+        "/images/sponge-blue.jpg",
+        "/images/sponge-purple.jpg",
+        "/images/sponge-yellow.jpg",
       ],
     },
     featured: true,
+    colorways: [
+      { name: "White", swatch: "#F2EFE9", image: "/images/sponge-white.jpg" },
+      // TODO(photography): red is stocked but not yet shot. The swatch shows;
+      // the gallery falls back to the main image until a photograph lands.
+      { name: "Red", swatch: "#B23A32" },
+      { name: "Blue", swatch: "#2F6DA8", image: "/images/sponge-blue.jpg" },
+      { name: "Pink", swatch: "#E45C9C", image: "/images/sponge-pink.jpg" },
+      { name: "Yellow", swatch: "#E0A83C", image: "/images/sponge-yellow.jpg" },
+      { name: "Purple", swatch: "#7E4C93", image: "/images/sponge-purple.jpg" },
+    ],
   },
   {
-    slug: "african-net-sponge-xl",
-    name: "African Net Sponge — XL",
+    slug: "african-net-sponge-handle",
+    name: "African Net Sponge with Handle",
     category: "sponge",
     price: 18,
-    tagline: "Same weave, more of it.",
+    tagline: "The authentic weave, with a braided handle at each end.",
     description:
-      "The regular sponge stretched to a full arm-span. The extra length is not a novelty — it is what makes the sponge genuinely one-handed across the shoulder blades and the backs of the legs, and it gives you more mesh to grip when the lather gets slippery. Chosen most often by taller bodies and by anyone who has spent years fighting with a washcloth.",
+      "The same hand-knotted mesh with a braided cord stitched to each end. The handles are the whole point: they let you pull the sponge taut across your own back in one motion, at whatever tension you want, without the mesh slipping out of a soapy grip. Chosen most often by anyone who has spent years fighting to reach between their shoulder blades.",
     howToUse:
-      "Identical to the regular size, with one addition: fold the sponge in half for chest, arms and anywhere you want a denser surface, then let it out to full length for the back. Hang to dry between uses — the longer body needs a little more air, so give it a hook rather than a shelf.",
+      "Wet the sponge and work soap through the mesh. Take a handle in each hand, pass it behind your back and pull alternately — the cord takes the strain, so the mesh stays flat against the skin instead of bunching. Rinse, wring, and hang it by one of the handles to dry.",
     materials:
-      "100% nylon mesh, hand-knotted. Undyed and unbleached. Roughly 39\" × 11\" relaxed — about 45% more surface than the regular. No rubber, latex or foam.",
+      "100% nylon mesh, hand-knotted, with a braided polyester cord handle stitched at each end. Roughly 33\" × 11\" relaxed, plus handles. No rubber, latex or foam.",
     accentColor: "#8C4A3B",
     images: {
-      main: "/images/placeholder-net-sponge-xl.jpg",
-      alt: "/images/placeholder-net-sponge-xl-alt.jpg",
+      main: "/images/sponge-handle-purple.jpg",
+      alt: "/images/sponge-handle-blue.jpg",
       gallery: [
-        "/images/placeholder-net-sponge-xl.jpg",
-        "/images/placeholder-net-sponge-xl-alt.jpg",
-        "/images/placeholder-texture-fiber.jpg",
-        "/images/placeholder-lifestyle-bath.jpg",
+        "/images/sponge-handle-purple.jpg",
+        "/images/sponge-handle-blue.jpg",
+        "/images/sponge-handle-pink.jpg",
+        "/images/sponge-handle-black.jpg",
       ],
     },
+    colorways: [
+      { name: "Black", swatch: "#241F1E", image: "/images/sponge-handle-black.jpg" },
+      { name: "Blue", swatch: "#1F4F86", image: "/images/sponge-handle-blue.jpg" },
+      { name: "Pink", swatch: "#F09099", image: "/images/sponge-handle-pink.jpg" },
+      { name: "Purple", swatch: "#8F5F90", image: "/images/sponge-handle-purple.jpg" },
+      { name: "White", swatch: "#F2EDDB", image: "/images/sponge-handle-white.jpg" },
+    ],
   },
   {
     slug: "miswak-stick-single",
     name: "Miswak Stick — Single",
     category: "miswak",
     price: 9,
-    tagline: "A toothbrush that grows on a tree.",
+    tagline: "An authentic toothbrush that grows on a tree.",
     description:
       "A cut root of Salvadora persica — the arāk tree — used for oral care across East Africa, the Arabian Peninsula and South Asia for well over a thousand years. Peel back an inch of bark, chew until the fibres splay into bristles, and you have a brush that carries its own cleaning compounds. It tastes faintly of horseradish and mustard the first time. That is the plant, not a flaw.",
     howToUse:
@@ -122,7 +157,7 @@ export const products: Product[] = [
     name: "Miswak Stick — 3-Pack",
     category: "miswak",
     price: 22,
-    tagline: "A season's supply, sealed one at a time.",
+    tagline: "A season of authentic sticks, sealed one at a time.",
     description:
       "Three sticks, each vacuum-sealed on its own so the two you are not using keep their moisture. A dried-out miswak frays instead of splaying and loses most of what makes it worth using — sealing individually is the whole point of buying in threes. Roughly three months of daily use, and the per-stick price is the lowest we offer outside the bundle.",
     howToUse:
@@ -146,7 +181,7 @@ export const products: Product[] = [
     name: "The Ritual Bundle",
     category: "bundle",
     price: 28,
-    tagline: "Both ends of the day, in one box.",
+    tagline: "Both ends of an authentic daily ritual, in one box.",
     description:
       "One regular net sponge and three miswak sticks — the morning and the evening, packed together and priced below the sum of its parts. This is how most people start with us, and how nearly everyone ends up: the two objects share a logic, which is that the simplest tool tends to be the one that has already been in use for centuries.",
     howToUse:

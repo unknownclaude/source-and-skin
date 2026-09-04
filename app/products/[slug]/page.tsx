@@ -2,17 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import Accordion from "@/components/Accordion";
-import AddToCartForm from "@/components/AddToCartForm";
 import ProductCard from "@/components/ProductCard";
-import ProductGallery from "@/components/ProductGallery";
+import ProductDetail from "@/components/ProductDetail";
 import Reveal from "@/components/Reveal";
-import {
-  defaultShippingCopy,
-  getProduct,
-  getRelatedProducts,
-  products,
-} from "@/data/products";
+import Reviews from "@/components/Reviews";
+import { getProduct, getRelatedProducts, products } from "@/data/products";
+import { getReviewsFor } from "@/data/reviews";
 import { site } from "@/data/site";
 import { formatPrice } from "@/lib/format";
 
@@ -46,6 +41,7 @@ export default function ProductPage({ params }: PageProps) {
   if (!product) notFound();
 
   const related = getRelatedProducts(product.slug);
+  const productReviews = getReviewsFor(product.slug);
 
   // Product schema so the PDP is eligible for rich results.
   const jsonLd = {
@@ -87,34 +83,10 @@ export default function ProductPage({ params }: PageProps) {
           </ol>
         </nav>
 
-        <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
-          <ProductGallery
-            images={product.images.gallery}
-            productName={product.name}
-            accentColor={product.accentColor}
-          />
-
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <h1 className="font-serif text-display-md">{product.name}</h1>
-            <p className="mt-4 text-lg text-charcoal/60">{product.tagline}</p>
-            <p className="mt-7 font-serif text-3xl tabular-nums">{formatPrice(product.price)}</p>
-
-            <AddToCartForm product={product} />
-
-            <div className="mt-12">
-              <Accordion
-                defaultOpenIndex={0}
-                items={[
-                  { title: "Description", content: product.description },
-                  { title: "How to use", content: product.howToUse },
-                  { title: "Materials", content: product.materials },
-                  { title: "Shipping & returns", content: product.shipping ?? defaultShippingCopy },
-                ]}
-              />
-            </div>
-          </div>
-        </div>
+        <ProductDetail product={product} />
       </div>
+
+      <Reviews reviews={productReviews} />
 
       <section className="border-t border-charcoal/10 bg-cream-deep" aria-labelledby="related-heading">
         <div className="edge py-section">

@@ -52,7 +52,7 @@ export const footerNav: { heading: string; links: NavLink[] }[] = [
     links: [
       { href: "/shop", label: "All products" },
       { href: "/products/african-net-sponge-regular", label: "Net Sponge — Regular" },
-      { href: "/products/african-net-sponge-xl", label: "Net Sponge — XL" },
+      { href: "/products/african-net-sponge-handle", label: "Net Sponge with Handle" },
       { href: "/products/miswak-stick-single", label: "Miswak — Single" },
       { href: "/products/ritual-bundle", label: "The Ritual Bundle" },
     ],
