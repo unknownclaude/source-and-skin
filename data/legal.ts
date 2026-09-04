@@ -19,9 +19,9 @@
  *      business chooses to offer, which may carry conditions) and a consumer
  *      guarantee claim (a legal right, which may not).
  *
- * TODO(business): every {{PLACEHOLDER}} below needs the real value before
- * launch. An ABN in particular is relied on by both Shopify onboarding and the
- * terms of sale.
+ * Trading identity lives in `businessDetails` below. Fields the business does
+ * not hold are null, and every clause that would use one is composed to read
+ * correctly without it — so there are no placeholders to leak onto a live page.
  */
 
 import { site } from "./site";
@@ -49,15 +49,25 @@ export type LegalDocument = {
 /**
  * Trading identity.
  *
- * `abn` is null because the business does not hold one. Two practical
- * consequences worth re-checking with the lawyer before launch: GST cannot be
- * registered for without an ABN, and payment platforms generally ask for one
- * during merchant onboarding. Set it here and the terms page picks it up.
+ * `abn` and `address` are both null, and every clause that would use them is
+ * composed to read correctly without them rather than rendering a gap. Set
+ * either here and the pages pick it up.
+ *
+ * On the ABN: GST cannot be registered for without one, and payment platforms
+ * generally ask for one during merchant onboarding.
+ *
+ * On the address: this is an online-only business with no premises, and there
+ * is no general requirement for an Australian online store to publish a street
+ * address on its website. What IS required is a working way to reach the
+ * trader, which the email address provides. A return address is given when a
+ * return is authorised, so a returning customer always has one — see the
+ * returns page.
  */
 export const businessDetails = {
   legalName: "Source and Skin",
   abn: null as string | null,
-  address: "{{REGISTERED BUSINESS ADDRESS}}",
+  /** Street address, if the business ever publishes one. Null = online only. */
+  address: null as string | null,
   email: site.email,
   state: "New South Wales",
 };
@@ -156,6 +166,7 @@ export const returns: LegalDocument = {
       ],
       list: [
         "The item must be unused and in its original, unopened packaging.",
+        "Write to us before sending anything back. We are an online business without a shopfront, so we will give you the return address when we authorise the return — a parcel sent to an address you found somewhere else may not reach us.",
         "Return postage for a change-of-mind return is yours to pay. We recommend a tracked service, since we can only refund what reaches us.",
         "We refund to the original payment method within five business days of receiving the return.",
         "For hygiene reasons we cannot accept a change-of-mind return on an opened miswak sleeve or a used net sponge. This exclusion applies only to change-of-mind returns. It does not apply, and we do not apply it, where an item is faulty, not as described, or otherwise fails a consumer guarantee.",
@@ -272,8 +283,11 @@ export const terms: LegalDocument = {
       heading: "Who you are dealing with",
       body: [
         `This store is operated by ${businessDetails.legalName}${
-          businessDetails.abn ? `, ABN ${businessDetails.abn},` : ","
-        } of ${businessDetails.address}. You can reach us at ${businessDetails.email}.`,
+          businessDetails.abn ? `, ABN ${businessDetails.abn}` : ""
+        }, an online business based in ${businessDetails.state}, Australia${
+          businessDetails.address ? `, at ${businessDetails.address}` : ""
+        }.`,
+        `We do not operate a shopfront. The fastest way to reach us is ${businessDetails.email}, and we answer everything ourselves — usually within two business days.`,
       ],
     },
     {
