@@ -12,11 +12,24 @@ type EditorialSectionProps = {
   linkLabel?: string;
   imageSrc: string;
   imageAlt: string;
+  /** Shape of the image slot. Portrait suits figure/in-use shots. */
+  imageAspect?: keyof typeof ASPECTS;
   /** Puts the image first on desktop. */
   imageFirst?: boolean;
   /** Cream on charcoal instead of the default charcoal on cream. */
   inverted?: boolean;
 };
+
+/**
+ * Tailwind needs whole class names at build time, so the aspect options are a
+ * lookup rather than an interpolated string.
+ */
+const ASPECTS = {
+  "4/3": "aspect-[4/3]",
+  "4/5": "aspect-[4/5]",
+  "1/1": "aspect-square",
+  "16/9": "aspect-video",
+} as const;
 
 /** Two-column story block: copy on one side, a single large image on the other. */
 export default function EditorialSection({
@@ -27,6 +40,7 @@ export default function EditorialSection({
   linkLabel,
   imageSrc,
   imageAlt,
+  imageAspect = "4/3",
   imageFirst = false,
   inverted = false,
 }: EditorialSectionProps) {
@@ -56,7 +70,7 @@ export default function EditorialSection({
         </Reveal>
 
         <Reveal delay={0.1} className={imageFirst ? "md:order-1" : undefined}>
-          <div className="relative aspect-[4/3] w-full overflow-hidden bg-sand">
+          <div className={`relative w-full overflow-hidden bg-cream ${ASPECTS[imageAspect]}`}>
             <Image
               src={imageSrc}
               alt={imageAlt}

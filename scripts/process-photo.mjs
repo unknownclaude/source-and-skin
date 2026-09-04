@@ -31,8 +31,9 @@
  *   --veil        0-1 opacity of the colour wash              (default: 0.12)
  *   --veilcolor   palette name or hex                         (default: cream)
  *   --bg          palette name or hex — replaces a white background (default: off)
- *   --bgthreshold 0-255 luminance counted as background       (default: 236)
- *   --bgfeather   edge softening in px                        (default: 1.5)
+ *   --mattelow    luminance fully OPAQUE below this           (default: 234)
+ *   --mattehigh   luminance fully TRANSPARENT above this      (default: 253)
+ *   --fade        0-1 fraction of the bottom that dissolves into the ground
  *   --quality     JPEG quality                                (default: 88)
  */
 
@@ -100,8 +101,9 @@ const saturation = Number(flags.sat ?? 0.68);
 const warmth = Number(flags.warm ?? 0.5);
 const veil = Number(flags.veil ?? 0.12);
 const quality = Number(flags.quality ?? 88);
-const bgThreshold = Number(flags.bgthreshold ?? 236);
-const bgFeather = Number(flags.bgfeather ?? 1.5);
+const matteLow = Number(flags.mattelow ?? 234);
+const matteHigh = Number(flags.mattehigh ?? 253);
+const fade = Number(flags.fade ?? 0);
 
 // --- 1. Crop and fit. Everything downstream works at the output size. ---
 let base = sharp(input).rotate(); // honour EXIF orientation
@@ -153,15 +155,23 @@ if (layers.length) graded = graded.composite(layers);
 let output;
 
 if (flags.bg) {
-  // --- 4. Key the white ground out and drop the subject onto a brand colour.
-  // The mask is derived from the UNGRADED frame so the threshold stays
-  // predictable no matter how hard the grade is pushed.
+  // --- 4. Matte the white ground out, onto a brand colour.
+  //
+  // A SOFT matte, not a threshold. Alpha ramps linearly from fully opaque at
+  // `matteLow` to fully transparent at `matteHigh`, so anti-aliased edges and
+  // soft shadow blend proportionally into the new ground rather than being
+  // sliced off. A hard threshold is exactly what produces cut-out edges.
+  //
+  // alpha = (matteHigh - luminance) * 255 / (matteHigh - matteLow), clamped —
+  // sharp's .linear(a, b) computes a*x + b and clamps to 0-255 for us.
+  //
+  // Pick the bounds from the image: `matteLow` must sit above the brightest
+  // pixel you want to keep, `matteHigh` at or just below the ground itself.
+  const span = Math.max(1, matteHigh - matteLow);
   const mask = await fitted
     .clone()
     .greyscale()
-    .threshold(bgThreshold) // background (bright) -> 255, subject -> 0
-    .negate() // subject -> 255, background -> 0
-    .blur(bgFeather > 0 ? Math.max(0.3, bgFeather) : 0.3)
+    .linear(-255 / span, (255 * matteHigh) / span)
     .raw()
     .toBuffer();
 
@@ -172,8 +182,32 @@ if (flags.bg) {
     .png()
     .toBuffer();
 
+  const grounded = [{ input: cutout }];
+
+  // A subject cropped hard at the frame edge reads as amputated once it is
+  // floating on a seamless ground. Dissolving the last stretch into that same
+  // ground turns the crop into a deliberate fade instead.
+  if (fade > 0) {
+    const { r, g, b } = toRgb(flags.bg);
+    const start = Math.max(0, 1 - fade) * 100;
+    grounded.push({
+      input: Buffer.from(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+           <defs>
+             <linearGradient id="f" x1="0" y1="0" x2="0" y2="1">
+               <stop offset="${start}%" stop-color="rgb(${r},${g},${b})" stop-opacity="0"/>
+               <stop offset="100%" stop-color="rgb(${r},${g},${b})" stop-opacity="1"/>
+             </linearGradient>
+           </defs>
+           <rect width="${width}" height="${height}" fill="url(#f)"/>
+         </svg>`
+      ),
+      blend: "over",
+    });
+  }
+
   output = sharp({ create: { width, height, channels: 3, background: toRgb(flags.bg) } })
-    .composite([{ input: cutout }]);
+    .composite(grounded);
 } else {
   output = graded;
 }
@@ -184,5 +218,5 @@ await output.jpeg({ quality, mozjpeg: true }).toFile(outPath);
 console.log(
   `Wrote ${outPath}\n  ${width}x${height}  ${(statSync(outPath).size / 1024).toFixed(0)}kB` +
     `  sat=${saturation} warm=${warmth} veil=${veil}` +
-    (flags.bg ? `  ground=${flags.bg} (threshold ${bgThreshold}, feather ${bgFeather})` : "")
+    (flags.bg ? `  ground=${flags.bg} (soft matte ${matteLow}-${matteHigh})` : "")
 );

@@ -77,8 +77,9 @@ export default function HomePage() {
         ]}
         linkHref="/sourcing"
         linkLabel="Read about sourcing"
-        imageSrc="/images/placeholder-editorial-sourcing.jpg"
-        imageAlt="Bark textures of the arāk tree, from which miswak is cut"
+        imageSrc="/images/editorial-ritual-in-use.jpg"
+        imageAlt="A woman drawing an African net sponge across her shoulders"
+        imageAspect="4/5"
         imageFirst
       />
 
