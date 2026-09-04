@@ -189,7 +189,8 @@ export default function CartDrawer() {
                     <span className="font-serif text-2xl tabular-nums">{formatPrice(subtotal)}</span>
                   </div>
                   <p className="mt-2 text-xs leading-relaxed text-charcoal/55">
-                    Shipping and taxes calculated at checkout. Free Australian shipping over $45.
+                    All prices in AUD. Shipping and taxes calculated at checkout. Free
+                    Australian shipping over $45.
                   </p>
                   <button
                     type="button"

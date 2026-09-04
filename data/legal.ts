@@ -46,13 +46,20 @@ export type LegalDocument = {
   sections: LegalSection[];
 };
 
-/** Placeholders that must be replaced before trading. */
+/**
+ * Trading identity.
+ *
+ * `abn` is null because the business does not hold one. Two practical
+ * consequences worth re-checking with the lawyer before launch: GST cannot be
+ * registered for without an ABN, and payment platforms generally ask for one
+ * during merchant onboarding. Set it here and the terms page picks it up.
+ */
 export const businessDetails = {
-  legalName: "{{REGISTERED BUSINESS NAME}}",
-  abn: "{{ABN}}",
+  legalName: "Source and Skin",
+  abn: null as string | null,
   address: "{{REGISTERED BUSINESS ADDRESS}}",
   email: site.email,
-  state: "{{STATE OR TERRITORY}}",
+  state: "New South Wales",
 };
 
 const UPDATED = "4 September 2026";
@@ -264,13 +271,15 @@ export const terms: LegalDocument = {
     {
       heading: "Who you are dealing with",
       body: [
-        `This store is operated by ${businessDetails.legalName}, ABN ${businessDetails.abn}, of ${businessDetails.address}. You can reach us at ${businessDetails.email}.`,
+        `This store is operated by ${businessDetails.legalName}${
+          businessDetails.abn ? `, ABN ${businessDetails.abn},` : ","
+        } of ${businessDetails.address}. You can reach us at ${businessDetails.email}.`,
       ],
     },
     {
       heading: "Prices",
       body: [
-        "Prices are shown in Australian dollars and include GST where GST applies. Shipping is shown separately and calculated at checkout before you pay.",
+        "Prices are shown in Australian dollars (AUD) and are inclusive of GST where GST applies to the sale. Shipping is shown separately and calculated at checkout before you pay.",
         "We may change prices at any time, but never after you have placed an order. The price you paid is the price.",
       ],
     },

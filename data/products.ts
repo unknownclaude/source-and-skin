@@ -7,7 +7,7 @@
  * the `Product` type as the app-facing contract and add an adapter that returns
  * `Product[]` from the Storefront API — no component should need to change.
  *
- * Prices are stored in major currency units (USD). Format via
+ * Prices are stored in major currency units (AUD). Format via
  * `formatPrice()` in `lib/format.ts`, never with raw string interpolation.
  */
 

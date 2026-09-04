@@ -1,7 +1,13 @@
-/** Currency formatting. Single place to change when a second currency lands. */
-const formatter = new Intl.NumberFormat("en-US", {
+/**
+ * Currency formatting. Single place to change when a second currency lands.
+ *
+ * en-AU renders AUD as "$14.00" rather than "A$14.00" — the plain form reads
+ * better in a price grid, and the store states the currency explicitly in the
+ * cart and the terms of sale instead of repeating a prefix on every figure.
+ */
+const formatter = new Intl.NumberFormat("en-AU", {
   style: "currency",
-  currency: "USD",
+  currency: "AUD",
   minimumFractionDigits: 2,
 });
 
