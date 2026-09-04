@@ -75,21 +75,19 @@ export const products: Product[] = [
       "100% nylon mesh, knotted by hand into a single continuous tube. Undyed and unbleached. Roughly 27\" × 11\" relaxed. Contains no rubber, latex or foam.",
     accentColor: "#C57A54",
     images: {
-      main: "/images/sponge-pink.jpg",
-      alt: "/images/sponge-blue.jpg",
+      main: "/images/sponge-red.jpg",
+      alt: "/images/sponge-pink.jpg",
       gallery: [
-        "/images/sponge-pink.jpg",
+        "/images/sponge-red.jpg",
         "/images/sponge-blue.jpg",
-        "/images/sponge-purple.jpg",
         "/images/sponge-yellow.jpg",
+        "/images/sponge-white-roll.jpg",
       ],
     },
     featured: true,
     colorways: [
       { name: "White", swatch: "#F2EFE9", image: "/images/sponge-white.jpg" },
-      // TODO(photography): red is stocked but not yet shot. The swatch shows;
-      // the gallery falls back to the main image until a photograph lands.
-      { name: "Red", swatch: "#B23A32" },
+      { name: "Red", swatch: "#C4231F", image: "/images/sponge-red.jpg" },
       { name: "Blue", swatch: "#2F6DA8", image: "/images/sponge-blue.jpg" },
       { name: "Pink", swatch: "#E45C9C", image: "/images/sponge-pink.jpg" },
       { name: "Yellow", swatch: "#E0A83C", image: "/images/sponge-yellow.jpg" },
