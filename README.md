@@ -112,12 +112,25 @@ node scripts/process-photo.mjs ~/photo.jpg --out net-sponge-regular \
 
 | Flag          | Does                                                          |
 | ------------- | ------------------------------------------------------------- |
-| `--preset`    | `product` (4:5), `wide` (16:9), `band`, `square`               |
+| `--preset`    | `product` / `portrait` (4:5), `wide` (16:9), `band`, `square`  |
 | `--crop`      | `x,y,w,h` as fractions of 0–1 — cut away fences, posts, hands  |
 | `--sat`       | saturation multiplier; 0.55–0.75 is the useful range           |
 | `--warm`      | strength of the warm cast (default 0.5)                        |
 | `--veil`      | opacity of the colour wash — the step that unifies             |
 | `--veilcolor` | `cream` (default), or an accent name for spotlight shots       |
+| `--bg`        | replace a white studio ground with a brand colour (off by default) |
+
+**On white studio backgrounds.** Marketplace shots usually come on pure white,
+which reads as a bright rectangle punched into a warm page. There are two ways
+to deal with it, and the gentler one is usually right:
+
+- **Warm it (default).** No `--bg` — just `--warm` and `--veil`. The white
+  drifts into cream, and soft shadows under the subject survive intact. This is
+  what "blending in" actually looks like on a photograph.
+- **Key it (`--bg cream`).** Cuts the background out on a luminance threshold
+  and drops the subject on a flat colour. Only reach for this on a hard-edged
+  cutout with no soft shadow — on a real photograph it leaves halos where the
+  shadow used to be. Tune with `--bgthreshold` and `--bgfeather` if you do.
 
 Two rules matter more than the flags:
 
