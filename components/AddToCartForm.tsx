@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useCart } from "@/components/CartProvider";
 import type { Product } from "@/data/products";
+import { shippingTerms } from "@/data/site";
 import { formatPrice } from "@/lib/format";
 
 const MAX_QUANTITY = 10;
@@ -60,7 +61,7 @@ export default function AddToCartForm({ product }: { product: Product }) {
       </div>
 
       <p className="mt-4 text-xs leading-relaxed text-charcoal/50">
-        Free Australian shipping over $45. Ships plastic-free within two business days.
+        {`Free Australian shipping over $${shippingTerms.freeThreshold}. Ships plastic-free within ${shippingTerms.dispatchDays} business days.`}
       </p>
     </form>
   );

@@ -1,9 +1,17 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import NewsletterForm from "@/components/NewsletterForm";
 import { footerNav, site } from "@/data/site";
 
 export default function Footer() {
+  // The homepage already carries a full newsletter section immediately above
+  // the footer. Rendering this one too put two identical sign-up forms back to
+  // back, which reads as a bug rather than a second chance to subscribe.
+  const showNewsletter = usePathname() !== "/";
+
   const year = new Date().getFullYear();
 
   return (
@@ -61,17 +69,19 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 border-t border-charcoal/10 pt-10">
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h2 className="font-serif text-display-sm">Join the list</h2>
-              <p className="mt-2 max-w-sm text-sm text-charcoal/60">
-                Restocks, small-batch drops, and the occasional note on where things come from.
-              </p>
+        {showNewsletter && (
+          <div className="mt-16 border-t border-charcoal/10 pt-10">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h2 className="font-serif text-display-sm">Join the list</h2>
+                <p className="mt-2 max-w-sm text-sm text-charcoal/60">
+                  Restocks, small-batch drops, and the occasional note on where things come from.
+                </p>
+              </div>
+              <NewsletterForm />
             </div>
-            <NewsletterForm />
           </div>
-        </div>
+        )}
 
         <p className="mt-14 text-xs text-charcoal/45">
           &copy; {year} {site.name}. All rights reserved.

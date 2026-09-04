@@ -54,7 +54,7 @@ export default function ProductPage({ params }: PageProps) {
     offers: {
       "@type": "Offer",
       price: product.price.toFixed(2),
-      priceCurrency: "USD",
+      priceCurrency: "AUD",
       availability: "https://schema.org/InStock",
       url: `${site.domain}/products/${product.slug}`,
     },

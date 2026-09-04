@@ -42,6 +42,19 @@ export default function ProductDetail({ product }: { product: Product }) {
         <p className="mt-4 text-lg text-charcoal/60">{product.tagline}</p>
         <p className="mt-7 font-serif text-3xl tabular-nums">{formatPrice(product.price)}</p>
 
+        {/* What it does, before what it is. The description is one accordion
+            down; a customer who reads nothing else should still get this. */}
+        {product.benefits && product.benefits.length > 0 && (
+          <ul className="mt-9 space-y-3 border-t border-charcoal/10 pt-8">
+            {product.benefits.map((benefit) => (
+              <li key={benefit} className="flex gap-3 text-[0.95rem] leading-relaxed text-charcoal/75">
+                <span aria-hidden className="mt-[0.6em] h-px w-4 shrink-0 bg-charcoal/30" />
+                {benefit}
+              </li>
+            ))}
+          </ul>
+        )}
+
         {product.colorways && product.colorways.length > 0 && selected && (
           <ColorwayPicker
             colorways={product.colorways}

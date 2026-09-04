@@ -11,15 +11,15 @@ import { primaryNav, site } from "@/data/site";
 import { cn } from "@/lib/format";
 
 /**
- * Transparent over the hero, cream once the page scrolls.
+ * Solid on every route.
  *
- * Routes other than the homepage have no full-bleed hero behind the nav, so
- * they start in the solid state — otherwise charcoal-on-cream links would be
- * asked to sit on nothing.
+ * It used to go transparent with cream links over the homepage's full-bleed
+ * charcoal hero. The hero is now a split panel on a cream ground, so cream
+ * links over it would be invisible — the nav sits on cream everywhere, and the
+ * only thing that changes on scroll is the border underneath it.
  */
 export default function Navbar() {
   const pathname = usePathname();
-  const isOverHero = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { count, openCart } = useCart();
@@ -42,35 +42,27 @@ export default function Navbar() {
     };
   }, [menuOpen]);
 
-  const solid = scrolled || !isOverHero || menuOpen;
+  // The bar is always charcoal-on-cream now; only the hairline reacts to scroll.
+  const raised = scrolled || menuOpen;
 
   return (
     <>
       <motion.header
-        className={cn(
-          "fixed inset-x-0 top-0 z-50 transition-colors duration-500 ease-editorial",
-          solid ? "text-charcoal" : "text-cream"
-        )}
+        className="fixed inset-x-0 top-0 z-50 text-charcoal"
         initial={false}
       >
-        {/* Background layer fades in rather than snapping, so the hero video
-            keeps its full bleed until the reader actually starts moving. */}
+        {/* Its own layer rather than a background on the header, so the
+            border can appear on scroll without the bar itself shifting. */}
         <motion.div
           aria-hidden
-          className="absolute inset-0 border-b border-charcoal/10 bg-cream/95 backdrop-blur-sm"
+          className={cn(
+            "absolute inset-0 bg-cream/95 backdrop-blur-sm transition-colors duration-500",
+            raised ? "border-b border-charcoal/10" : "border-b border-transparent"
+          )}
           initial={false}
-          animate={{ opacity: solid ? 1 : 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         />
-        {/* Legibility scrim while transparent over the video. */}
-        <div
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-charcoal/45 to-transparent transition-opacity duration-500",
-            solid ? "opacity-0" : "opacity-100"
-          )}
-        />
-
         <nav aria-label="Primary" className="edge relative flex h-[4.5rem] items-center justify-between gap-6 md:h-20">
           <Link
             href="/"

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef } from "react";
 
 import { useCart } from "@/components/CartProvider";
+import { shippingTerms } from "@/data/site";
 import { formatPrice } from "@/lib/format";
 
 /**
@@ -189,8 +190,7 @@ export default function CartDrawer() {
                     <span className="font-serif text-2xl tabular-nums">{formatPrice(subtotal)}</span>
                   </div>
                   <p className="mt-2 text-xs leading-relaxed text-charcoal/55">
-                    All prices in AUD. Shipping and taxes calculated at checkout. Free
-                    Australian shipping over $45.
+                    {`All prices in AUD. Shipping and taxes calculated at checkout. Free Australian shipping over $${shippingTerms.freeThreshold}.`}
                   </p>
                   <button
                     type="button"

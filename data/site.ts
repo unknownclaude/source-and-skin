@@ -28,6 +28,24 @@ export const site = {
   },
 } as const;
 
+/**
+ * Shipping terms, in one place.
+ *
+ * These numbers are a representation to the customer under the Australian
+ * Consumer Law, so the buy box, the cart, the FAQ, the product copy and the
+ * shipping policy all have to agree. They did not: the threshold was written
+ * as $45 in the policy and the cart and $40 in the FAQ and the product copy.
+ * Everything now reads from here — change the number once.
+ */
+export const shippingTerms = {
+  /** Order value (AUD) at or above which standard AU shipping is free. */
+  freeThreshold: 45,
+  /** Flat standard AU rate (AUD) below the threshold. */
+  flatRate: 9.95,
+  /** Business days from order to dispatch. */
+  dispatchDays: 2,
+} as const;
+
 export type NavLink = { href: string; label: string };
 
 export const primaryNav: NavLink[] = [
