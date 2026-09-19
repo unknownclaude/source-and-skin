@@ -37,7 +37,12 @@
   }
 
   .rule {
-    @apply h-px w-full bg-charcoal/12;
+    /* Arbitrary alpha, not `/12`. Tailwind resolves a bare `/12` inside a
+       class attribute but not inside `@apply`, where the opacity has to come
+       from the theme scale or be written explicitly. This failed silently for
+       a long time because webpack's CSS cache kept serving an earlier compile
+       of this file; it only surfaced on a cold build. */
+    @apply h-px w-full bg-charcoal/[0.12];
   }
 
   /* Understated editorial link: underline grows from the left on hover. */

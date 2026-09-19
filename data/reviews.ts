@@ -31,6 +31,10 @@ export type Review = {
   /** Slug of the product being reviewed. */
   product: string;
   rating: 1 | 2 | 3 | 4 | 5;
+  /** ISO date the review was left. Drives ordering and the JSON-LD. */
+  date: string;
+  /** The reviewer's order was matched to this review. Never assert it loosely. */
+  verifiedPurchase?: boolean;
   image?: string;
   imageAlt?: string;
   /**
@@ -49,6 +53,8 @@ export const reviews: Review[] = [
       "The Ritual Bundle has turned my teeth from yellow to white and my skin from bumpy to smooth.",
     product: "ritual-bundle",
     rating: 5,
+    date: "2026-08-22",
+    verifiedPurchase: true,
     image: "/images/review-lily.jpg",
     imageAlt: "A customer rinsing with an African net sponge across her shoulders",
     // Whitening teeth and changing skin texture are both specific outcome
@@ -59,5 +65,30 @@ export const reviews: Review[] = [
 ];
 
 export function getReviewsFor(slug: string): Review[] {
-  return reviews.filter((review) => review.product === slug);
+  return reviews
+    .filter((review) => review.product === slug)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export type AggregateRating = { average: number; count: number };
+
+/**
+ * Average rating for a product, or null when there are none.
+ *
+ * Null rather than zero, and null rather than a site-wide average, because
+ * every caller has to render *nothing* in that case. A star row on a product
+ * with no reviews is a claim about a product nobody has reviewed — and in
+ * `AggregateRating` structured data it is the specific thing Google penalises
+ * and the ACCC would call a misleading representation. There is no honest
+ * placeholder for social proof that does not exist yet.
+ */
+export function getAggregateRating(slug: string): AggregateRating | null {
+  const forProduct = reviews.filter((review) => review.product === slug);
+  if (forProduct.length === 0) return null;
+
+  const total = forProduct.reduce((sum, review) => sum + review.rating, 0);
+  return {
+    average: Math.round((total / forProduct.length) * 10) / 10,
+    count: forProduct.length,
+  };
 }

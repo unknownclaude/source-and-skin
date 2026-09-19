@@ -26,9 +26,25 @@ type Status = "idle" | "submitting" | "success" | "error";
  * address: the timestamp, and that it came from this form. An address without
  * a consent record is an address you cannot lawfully mail.
  */
-async function fakeSubscribe(email: string): Promise<void> {
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  if (!email) throw new Error("Missing email");
+/**
+ * Posts to /api/subscribe, which records the address and the consent.
+ *
+ * Throws with a readable message on failure — including the 503 the route
+ * returns when no list is connected — so the caller can tell the subscriber
+ * the truth instead of showing them a success line for a subscription that
+ * did not happen.
+ */
+async function subscribe(email: string, consent: boolean): Promise<void> {
+  const response = await fetch("/api/subscribe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, consent }),
+  });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error ?? "We could not add you just now.");
+  }
 }
 
 export default function NewsletterForm({ inverted = false }: { inverted?: boolean }) {
@@ -57,14 +73,16 @@ export default function NewsletterForm({ inverted = false }: { inverted?: boolea
 
     setStatus("submitting");
     try {
-      await fakeSubscribe(trimmed);
+      await subscribe(trimmed, consented);
       setStatus("success");
       setMessage("You are on the list. Look out for the first note.");
       setEmail("");
       setConsented(false);
-    } catch {
+    } catch (error) {
       setStatus("error");
-      setMessage("Something went wrong. Try again in a moment.");
+      setMessage(
+        `${error instanceof Error ? error.message : "Something went wrong."} Email ${site.email} and we will add you by hand.`
+      );
     }
   }
 

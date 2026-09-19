@@ -6,7 +6,9 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 
 import type { Product } from "@/data/products";
+import { getAggregateRating } from "@/data/reviews";
 import { formatPrice } from "@/lib/format";
+import StarRating from "@/components/StarRating";
 
 type ProductCardProps = {
   product: Product;
@@ -30,6 +32,8 @@ export default function ProductCard({
   index = 0,
 }: ProductCardProps) {
   const [active, setActive] = useState(false);
+  // Null when nobody has reviewed this yet — the row simply does not render.
+  const rating = getAggregateRating(product.slug);
 
   return (
     <motion.article
@@ -79,6 +83,7 @@ export default function ProductCard({
             {formatPrice(product.price)}
           </p>
         </div>
+        {rating && <StarRating rating={rating.average} count={rating.count} className="pt-2" />}
         <p className="pt-1 text-sm leading-relaxed text-charcoal/55">{product.tagline}</p>
       </Link>
     </motion.article>

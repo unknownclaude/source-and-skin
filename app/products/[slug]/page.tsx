@@ -7,7 +7,7 @@ import ProductDetail from "@/components/ProductDetail";
 import Reveal from "@/components/Reveal";
 import Reviews from "@/components/Reviews";
 import { getProduct, getRelatedProducts, products } from "@/data/products";
-import { getReviewsFor } from "@/data/reviews";
+import { getAggregateRating, getReviewsFor } from "@/data/reviews";
 import { site } from "@/data/site";
 import { formatPrice } from "@/lib/format";
 
@@ -43,7 +43,14 @@ export default function ProductPage({ params }: PageProps) {
   const related = getRelatedProducts(product.slug);
   const productReviews = getReviewsFor(product.slug);
 
+  const rating = getAggregateRating(product.slug);
+
   // Product schema so the PDP is eligible for rich results.
+  //
+  // `aggregateRating` and `review` are attached only when real reviews exist.
+  // Emitting either for a product nobody has reviewed is review spam under
+  // Google's structured data policy — it earns a manual action rather than
+  // stars — and it is a misleading representation besides. Absent is correct.
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -58,6 +65,22 @@ export default function ProductPage({ params }: PageProps) {
       availability: "https://schema.org/InStock",
       url: `${site.domain}/products/${product.slug}`,
     },
+    ...(rating && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: rating.average,
+        reviewCount: rating.count,
+      },
+    }),
+    ...(productReviews.length > 0 && {
+      review: productReviews.map((item) => ({
+        "@type": "Review",
+        author: { "@type": "Person", name: item.author },
+        datePublished: item.date,
+        reviewRating: { "@type": "Rating", ratingValue: item.rating, bestRating: 5 },
+        reviewBody: item.quote,
+      })),
+    }),
   };
 
   return (

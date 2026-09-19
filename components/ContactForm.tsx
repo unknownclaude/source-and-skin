@@ -12,13 +12,15 @@ const TOPICS = ["An order", "Sourcing question", "Wholesale", "Something else"];
 /**
  * Contact form.
  *
- * Client-side validation only — there is no inbox behind it yet. Point
- * `submit` at /api/contact (or Formspree / Resend) and the states below carry
- * over unchanged.
+ * Posts to /api/contact, which sends the message and returns 503 if it cannot.
+ * When that happens the customer is shown the email address rather than a
+ * success screen — a form that claims to have delivered a message it dropped
+ * is worse than no form, because the person stops trying and waits.
  */
 export default function ContactForm() {
   const [status, setStatus] = useState<Status>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [failure, setFailure] = useState<string | null>(null);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,9 +41,37 @@ export default function ContactForm() {
     }
 
     setStatus("submitting");
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    setStatus("success");
-    event.currentTarget.reset();
+    setFailure(null);
+
+    // Captured before the await: React clears the pooled event's target, and
+    // reset() on a null form throws after the network round-trip.
+    const formElement = event.currentTarget;
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          topic: String(form.get("topic") ?? ""),
+          message,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = (await response.json().catch(() => ({}))) as { error?: string };
+        setFailure(data.error ?? "We could not send that just now.");
+        setStatus("error");
+        return;
+      }
+
+      setStatus("success");
+      formElement.reset();
+    } catch {
+      setFailure("We could not reach the server.");
+      setStatus("error");
+    }
   }
 
   const fieldClass =
@@ -161,6 +191,18 @@ export default function ContactForm() {
         </Link>
         .
       </p>
+
+      {failure && (
+        <div role="alert" className="border-l-2 border-clay bg-cream-deep/60 py-4 pl-5 pr-4">
+          <p className="text-sm leading-relaxed text-charcoal/80">
+            {failure} Please email us directly at{" "}
+            <a href={`mailto:${site.email}`} className="link-underline">
+              {site.email}
+            </a>{" "}
+            and we will answer within two business days.
+          </p>
+        </div>
+      )}
 
       <button
         type="submit"

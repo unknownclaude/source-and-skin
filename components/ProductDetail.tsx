@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import Accordion from "@/components/Accordion";
 import AddToCartForm from "@/components/AddToCartForm";
 import ProductGallery from "@/components/ProductGallery";
+import DeliveryEstimate from "@/components/DeliveryEstimate";
 import ProductOptions from "@/components/ProductOptions";
+import StickyBuyBar from "@/components/StickyBuyBar";
+import TrustRow from "@/components/TrustRow";
 import {
   defaultShippingCopy,
   selectedImage,
@@ -13,6 +16,9 @@ import {
   type OptionSelection,
   type Product,
 } from "@/data/products";
+import StarRating from "@/components/StarRating";
+import { useCart } from "@/components/CartProvider";
+import { getAggregateRating } from "@/data/reviews";
 import { formatPrice } from "@/lib/format";
 
 /**
@@ -30,6 +36,9 @@ import { formatPrice } from "@/lib/format";
 export default function ProductDetail({ product }: { product: Product }) {
   const [selection, setSelection] = useState<OptionSelection>({});
   const [missing, setMissing] = useState<string[]>([]);
+  const { add } = useCart();
+  // The sticky mobile bar appears once this block scrolls off the top.
+  const buyRef = useRef<HTMLDivElement>(null);
 
   // The chosen colour leads the gallery; everything else keeps its order, so
   // the strip does not reshuffle under the customer on every click.
@@ -41,6 +50,7 @@ export default function ProductDetail({ product }: { product: Product }) {
   }, [product, selection]);
 
   const price = unitPrice(product, selection);
+  const rating = getAggregateRating(product.slug);
 
   return (
     <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
@@ -53,6 +63,11 @@ export default function ProductDetail({ product }: { product: Product }) {
 
       <div className="lg:sticky lg:top-28 lg:self-start">
         <h1 className="font-serif text-display-md">{product.name}</h1>
+        {rating && (
+          <a href="#reviews-heading" className="mt-4 inline-flex hover:opacity-70">
+            <StarRating rating={rating.average} count={rating.count} size="md" />
+          </a>
+        )}
         <p className="mt-4 text-lg text-charcoal/60">{product.tagline}</p>
         <p className="mt-7 font-serif text-3xl tabular-nums">{formatPrice(price)}</p>
 
@@ -69,17 +84,22 @@ export default function ProductDetail({ product }: { product: Product }) {
           </ul>
         )}
 
-        <ProductOptions
-          product={product}
-          selection={selection}
-          highlight={missing}
-          onChange={(next) => {
-            setSelection(next);
-            setMissing([]);
-          }}
-        />
+        <div ref={buyRef}>
+          <ProductOptions
+            product={product}
+            selection={selection}
+            highlight={missing}
+            onChange={(next) => {
+              setSelection(next);
+              setMissing([]);
+            }}
+          />
 
-        <AddToCartForm product={product} selection={selection} onMissing={setMissing} />
+          <AddToCartForm product={product} selection={selection} onMissing={setMissing} />
+        </div>
+
+        <DeliveryEstimate />
+        <TrustRow />
 
         <div className="mt-12">
           <Accordion
@@ -93,6 +113,14 @@ export default function ProductDetail({ product }: { product: Product }) {
           />
         </div>
       </div>
+
+      <StickyBuyBar
+        product={product}
+        selection={selection}
+        onMissing={setMissing}
+        onAdd={() => add(product.slug, 1, selection)}
+        watchRef={buyRef}
+      />
     </div>
   );
 }

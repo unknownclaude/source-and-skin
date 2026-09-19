@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import ProductComparison from "@/components/ProductComparison";
 import SectionHeading from "@/components/SectionHeading";
 import ShopGrid from "@/components/ShopGrid";
 import { products } from "@/data/products";
@@ -24,9 +25,13 @@ export default function ShopPage() {
         as="h1"
         eyebrow="Everything we make"
         heading="The collection."
-        standfirst="Five things. Two of them are the same thing in a different size, and one is the other two together."
+        standfirst="Two objects, and the bundles that pair them. If the bundles blur together, the table underneath says exactly what is in each box."
       />
       <ShopGrid products={products} />
+
+      <div className="mt-section">
+        <ProductComparison />
+      </div>
     </div>
   );
 }

@@ -20,6 +20,29 @@ npm run dev      # http://localhost:3000
 
 ---
 
+## Environment
+
+Everything works unset — the site runs unmeasured and the forms report that
+they are not connected, rather than breaking or pretending. Set these as you
+turn each piece on.
+
+| Variable | Turns on |
+| --- | --- |
+| `RESEND_API_KEY` | Sending from the contact and newsletter forms |
+| `CONTACT_FROM_EMAIL` | The verified sender address those emails come from |
+| `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Analytics (`components/Analytics.tsx`) |
+| `NEXT_PUBLIC_SHOPIFY_DOMAIN` | The checkout handoff (`lib/checkout.ts`) |
+
+Without `RESEND_API_KEY` the form routes return 503 and the UI shows the
+business email address. That is deliberate: a contact form that reports
+success while dropping the message is the one failure mode worth engineering
+against, because the customer stops trying.
+
+The checkout handoff also needs Shopify variant IDs — see the TODO in
+`lib/checkout.ts`, which is the single function left to fill in.
+
+---
+
 ## Where the content lives
 
 Two files hold everything you are likely to want to change.

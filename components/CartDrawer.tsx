@@ -5,7 +5,9 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
+import CartCrossSell from "@/components/CartCrossSell";
 import { useCart } from "@/components/CartProvider";
+import FreeShippingMeter from "@/components/FreeShippingMeter";
 import { gstStatement } from "@/data/legal";
 import { shippingTerms } from "@/data/site";
 import { formatPrice } from "@/lib/format";
@@ -122,6 +124,8 @@ export default function CartDrawer() {
               </div>
             ) : (
               <>
+                <FreeShippingMeter subtotal={subtotal} />
+
                 <ul className="flex-1 divide-y divide-charcoal/10 overflow-y-auto px-6">
                   {lines.map((line) => (
                     <li key={line.key} className="flex gap-4 py-5">
@@ -195,6 +199,8 @@ export default function CartDrawer() {
                     </li>
                   ))}
                 </ul>
+
+                <CartCrossSell />
 
                 <footer className="border-t border-charcoal/10 px-6 py-6">
                   <div className="flex items-baseline justify-between">
