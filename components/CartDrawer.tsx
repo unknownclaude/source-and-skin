@@ -3,9 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useCart } from "@/components/CartProvider";
+import { gstStatement } from "@/data/legal";
 import { shippingTerms } from "@/data/site";
 import { formatPrice } from "@/lib/format";
 
@@ -18,6 +19,14 @@ import { formatPrice } from "@/lib/format";
  */
 export default function CartDrawer() {
   const { lines, subtotal, isOpen, closeCart, setQuantity, remove } = useCart();
+  const [accepted, setAccepted] = useState(false);
+
+  // Reset acceptance whenever the bag closes. A tick left over from an earlier
+  // bag — different items, possibly different terms — is not agreement to this
+  // one, and re-asking costs the customer one click.
+  useEffect(() => {
+    if (!isOpen) setAccepted(false);
+  }, [isOpen]);
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -115,7 +124,7 @@ export default function CartDrawer() {
               <>
                 <ul className="flex-1 divide-y divide-charcoal/10 overflow-y-auto px-6">
                   {lines.map((line) => (
-                    <li key={line.slug} className="flex gap-4 py-5">
+                    <li key={line.key} className="flex gap-4 py-5">
                       <Link
                         href={`/products/${line.slug}`}
                         onClick={closeCart}
@@ -139,8 +148,13 @@ export default function CartDrawer() {
                           >
                             {line.product.name}
                           </Link>
+                          {line.selectionLabel && (
+                            <p className="mt-1 text-[0.78rem] uppercase tracking-[0.12em] text-charcoal/50">
+                              {line.selectionLabel}
+                            </p>
+                          )}
                           <p className="mt-1 text-sm text-charcoal/60">
-                            {formatPrice(line.product.price)}
+                            {formatPrice(line.unitPrice)}
                           </p>
                         </div>
 
@@ -148,9 +162,9 @@ export default function CartDrawer() {
                           <div className="flex items-center border border-charcoal/20">
                             <button
                               type="button"
-                              onClick={() => setQuantity(line.slug, line.quantity - 1)}
+                              onClick={() => setQuantity(line.key, line.quantity - 1)}
                               className="px-2.5 py-1 text-sm transition-colors hover:bg-charcoal/5"
-                              aria-label={`Decrease quantity of ${line.product.name}`}
+                              aria-label={`Decrease quantity of ${line.product.name}${line.selectionLabel ? `, ${line.selectionLabel}` : ""}`}
                             >
                               &minus;
                             </button>
@@ -159,9 +173,9 @@ export default function CartDrawer() {
                             </span>
                             <button
                               type="button"
-                              onClick={() => setQuantity(line.slug, line.quantity + 1)}
+                              onClick={() => setQuantity(line.key, line.quantity + 1)}
                               className="px-2.5 py-1 text-sm transition-colors hover:bg-charcoal/5"
-                              aria-label={`Increase quantity of ${line.product.name}`}
+                              aria-label={`Increase quantity of ${line.product.name}${line.selectionLabel ? `, ${line.selectionLabel}` : ""}`}
                             >
                               +
                             </button>
@@ -169,7 +183,7 @@ export default function CartDrawer() {
 
                           <button
                             type="button"
-                            onClick={() => remove(line.slug)}
+                            onClick={() => remove(line.key)}
                             className="text-[0.7rem] uppercase tracking-[0.16em] text-charcoal/50 underline-offset-4 transition-colors hover:text-charcoal hover:underline"
                           >
                             Remove
@@ -190,15 +204,54 @@ export default function CartDrawer() {
                     <span className="font-serif text-2xl tabular-nums">{formatPrice(subtotal)}</span>
                   </div>
                   <p className="mt-2 text-xs leading-relaxed text-charcoal/55">
-                    {`All prices in AUD. Shipping and taxes calculated at checkout. Free Australian shipping over $${shippingTerms.freeThreshold}.`}
+                    {`${gstStatement} Shipping is calculated at checkout. Free Australian shipping over $${shippingTerms.freeThreshold}.`}
                   </p>
+
+                  {/* Agreement is an act, not a footer link. A tick box the
+                      customer has to find and check ("clickwrap") is the form
+                      Australian courts have been willing to enforce; terms
+                      merely linked at the bottom of a page ("browsewrap") are
+                      far weaker, because nothing shows the buyer ever saw
+                      them. The box starts unticked on purpose — a pre-ticked
+                      one is not consent to anything. */}
+                  <div className="mt-5 flex items-start gap-3">
+                    <input
+                      id="accept-terms"
+                      type="checkbox"
+                      checked={accepted}
+                      onChange={(event) => setAccepted(event.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-charcoal"
+                    />
+                    <label htmlFor="accept-terms" className="text-xs leading-relaxed text-charcoal/70">
+                      I have read and agree to the{" "}
+                      <Link href="/terms" onClick={closeCart} className="link-underline">
+                        Terms of sale
+                      </Link>
+                      ,{" "}
+                      <Link href="/returns" onClick={closeCart} className="link-underline">
+                        Returns &amp; refunds
+                      </Link>{" "}
+                      and{" "}
+                      <Link href="/privacy" onClick={closeCart} className="link-underline">
+                        Privacy policy
+                      </Link>
+                      . My rights under the Australian Consumer Law are not affected by agreeing.
+                    </label>
+                  </div>
+
                   <button
                     type="button"
                     disabled
+                    aria-describedby="checkout-state"
                     className="mt-5 w-full cursor-not-allowed rounded-full bg-charcoal py-4 text-[0.72rem] uppercase tracking-[0.18em] text-cream opacity-45"
                   >
                     Checkout — coming soon
                   </button>
+                  <p id="checkout-state" className="mt-3 text-center text-[0.7rem] text-charcoal/45">
+                    {accepted
+                      ? "Payments are not live yet — nothing can be charged."
+                      : "Tick the box above to continue once payments are live."}
+                  </p>
                 </footer>
               </>
             )}

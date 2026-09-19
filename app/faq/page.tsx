@@ -4,6 +4,7 @@ import Link from "next/link";
 import Accordion from "@/components/Accordion";
 import Reveal from "@/components/Reveal";
 import SectionHeading from "@/components/SectionHeading";
+import { gstStatement } from "@/data/legal";
 import { shippingTerms, site } from "@/data/site";
 
 export const metadata: Metadata = {
@@ -161,6 +162,10 @@ const groups = [
         title: "When will my order ship?",
         content:
           `Within ${shippingTerms.dispatchDays} business days of ordering. Australian orders over $${shippingTerms.freeThreshold} ship free; below that it is a flat $${shippingTerms.flatRate}. International shipping is calculated at checkout. If a parcel takes more than 30 days to reach you, we refund the shipping in full.`,
+      },
+      {
+        title: "Do your prices include GST?",
+        content: `${gstStatement} We will register for GST once our turnover requires it, and prices shown here will include it from that date.`,
       },
       {
         title: "Where do you ship?",

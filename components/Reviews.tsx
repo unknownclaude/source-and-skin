@@ -52,6 +52,17 @@ export default function Reviews({ reviews }: { reviews: Review[] }) {
                   <figcaption className="mt-6 text-[0.75rem] uppercase tracking-[0.18em] text-charcoal/55">
                     {review.author}
                   </figcaption>
+
+                  {/* Sits directly under the quote, at readable size, because
+                      a qualifier the reader does not see qualifies nothing. */}
+                  {review.outcomeClaim && (
+                    <p className="mt-6 max-w-md border-l-2 border-charcoal/20 pl-4 text-[0.82rem] leading-relaxed text-charcoal/55">
+                      One customer&rsquo;s own experience, published as she wrote it. It is not a
+                      typical result and not a result we promise you. We make no claim that anything
+                      we sell whitens teeth or changes skin texture, and nothing we sell treats a
+                      medical or dental condition.
+                    </p>
+                  )}
                 </div>
               </figure>
             </Reveal>

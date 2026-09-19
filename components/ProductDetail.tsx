@@ -4,34 +4,48 @@ import { useMemo, useState } from "react";
 
 import Accordion from "@/components/Accordion";
 import AddToCartForm from "@/components/AddToCartForm";
-import ColorwayPicker from "@/components/ColorwayPicker";
 import ProductGallery from "@/components/ProductGallery";
-import { defaultShippingCopy, type Colorway, type Product } from "@/data/products";
+import ProductOptions from "@/components/ProductOptions";
+import {
+  defaultShippingCopy,
+  selectedImage,
+  unitPrice,
+  type OptionSelection,
+  type Product,
+} from "@/data/products";
 import { formatPrice } from "@/lib/format";
 
 /**
  * The interactive half of a product page.
  *
- * Gallery and colour picker are lifted into one component because selecting a
- * colour has to change the image — as siblings they could not share that state.
- * Everything static (breadcrumb, JSON-LD, related products) stays server-rendered
- * on the page itself.
+ * Gallery, option pickers and buy button are one component because they share
+ * a single piece of state — the customer's selection. Choosing a colour has to
+ * move the gallery AND re-price the button AND unblock the submit; as siblings
+ * they could not agree on any of it.
+ *
+ * Nothing is pre-selected. The price shown is always the price of what is
+ * currently configured, so the number on the button never disagrees with the
+ * number in the bag.
  */
 export default function ProductDetail({ product }: { product: Product }) {
-  const [selected, setSelected] = useState<Colorway | null>(product.colorways?.[0] ?? null);
+  const [selection, setSelection] = useState<OptionSelection>({});
+  const [missing, setMissing] = useState<string[]>([]);
 
-  // A colourway without photography falls back to the product's own gallery, so
-  // the customer always sees the product rather than an empty frame.
+  // The chosen colour leads the gallery; everything else keeps its order, so
+  // the strip does not reshuffle under the customer on every click.
   const gallery = useMemo(() => {
-    if (!selected?.image) return product.images.gallery;
-    const rest = product.images.gallery.filter((src) => src !== selected.image);
-    return [selected.image, ...rest];
-  }, [selected, product.images.gallery]);
+    const lead = selectedImage(product, selection);
+    if (!lead) return product.images.gallery;
+    const rest = product.images.gallery.filter((src) => src !== lead);
+    return [lead, ...rest];
+  }, [product, selection]);
+
+  const price = unitPrice(product, selection);
 
   return (
     <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:gap-20">
       <ProductGallery
-        key={selected?.name ?? "default"}
+        key={gallery[0]}
         images={gallery}
         productName={product.name}
         accentColor={product.accentColor}
@@ -40,7 +54,7 @@ export default function ProductDetail({ product }: { product: Product }) {
       <div className="lg:sticky lg:top-28 lg:self-start">
         <h1 className="font-serif text-display-md">{product.name}</h1>
         <p className="mt-4 text-lg text-charcoal/60">{product.tagline}</p>
-        <p className="mt-7 font-serif text-3xl tabular-nums">{formatPrice(product.price)}</p>
+        <p className="mt-7 font-serif text-3xl tabular-nums">{formatPrice(price)}</p>
 
         {/* What it does, before what it is. The description is one accordion
             down; a customer who reads nothing else should still get this. */}
@@ -55,15 +69,17 @@ export default function ProductDetail({ product }: { product: Product }) {
           </ul>
         )}
 
-        {product.colorways && product.colorways.length > 0 && selected && (
-          <ColorwayPicker
-            colorways={product.colorways}
-            selected={selected.name}
-            onSelect={setSelected}
-          />
-        )}
+        <ProductOptions
+          product={product}
+          selection={selection}
+          highlight={missing}
+          onChange={(next) => {
+            setSelection(next);
+            setMissing([]);
+          }}
+        />
 
-        <AddToCartForm product={product} />
+        <AddToCartForm product={product} selection={selection} onMissing={setMissing} />
 
         <div className="mt-12">
           <Accordion

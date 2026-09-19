@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useId, useState } from "react";
+
+import { site } from "@/data/site";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -11,6 +14,17 @@ type Status = "idle" | "submitting" | "success" | "error";
  * sending anything. Swap `fakeSubscribe` for a POST to /api/subscribe (or a
  * Klaviyo / Mailchimp / ConvertKit endpoint) — the surrounding state machine
  * already handles pending, success and failure.
+ *
+ * The consent box is not decoration. The Spam Act 2003 (Cth) requires consent
+ * before a commercial electronic message is sent, that every message identify
+ * the sender, and that unsubscribe requests be honoured within five working
+ * days. An unticked box the subscriber has to tick is the cleanest evidence
+ * that consent was given, which matters because the burden of proving it sits
+ * on the sender. It starts unticked — a pre-ticked box is not consent.
+ *
+ * Whatever replaces `fakeSubscribe` MUST record the consent alongside the
+ * address: the timestamp, and that it came from this form. An address without
+ * a consent record is an address you cannot lawfully mail.
  */
 async function fakeSubscribe(email: string): Promise<void> {
   await new Promise((resolve) => setTimeout(resolve, 700));
@@ -19,7 +33,9 @@ async function fakeSubscribe(email: string): Promise<void> {
 
 export default function NewsletterForm({ inverted = false }: { inverted?: boolean }) {
   const inputId = useId();
+  const consentId = `${inputId}-consent`;
   const [email, setEmail] = useState("");
+  const [consented, setConsented] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
 
@@ -33,12 +49,19 @@ export default function NewsletterForm({ inverted = false }: { inverted?: boolea
       return;
     }
 
+    if (!consented) {
+      setStatus("error");
+      setMessage("Tick the box to confirm you would like these emails.");
+      return;
+    }
+
     setStatus("submitting");
     try {
       await fakeSubscribe(trimmed);
       setStatus("success");
       setMessage("You are on the list. Look out for the first note.");
       setEmail("");
+      setConsented(false);
     } catch {
       setStatus("error");
       setMessage("Something went wrong. Try again in a moment.");
@@ -81,6 +104,30 @@ export default function NewsletterForm({ inverted = false }: { inverted?: boolea
         >
           {status === "submitting" ? "Joining…" : "Join"}
         </button>
+      </div>
+
+      <div className="mt-4 flex items-start gap-3">
+        <input
+          id={consentId}
+          type="checkbox"
+          checked={consented}
+          onChange={(event) => {
+            setConsented(event.target.checked);
+            if (status !== "idle") setStatus("idle");
+          }}
+          className={`mt-0.5 h-4 w-4 shrink-0 ${inverted ? "accent-cream" : "accent-charcoal"}`}
+        />
+        <label
+          htmlFor={consentId}
+          className={`text-xs leading-relaxed ${inverted ? "text-cream/65" : "text-charcoal/60"}`}
+        >
+          Yes, email me occasional notes and restock notices from {site.name}. No more than twice a
+          month, and you can unsubscribe from any message —{" "}
+          <Link href="/privacy" className="link-underline">
+            how we handle your address
+          </Link>
+          .
+        </label>
       </div>
 
       {/* Announced to screen readers without stealing focus. */}

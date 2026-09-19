@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     title: `${site.name} — African Net Sponges & Miswak`,
     description: site.description,
     url: site.domain,
-    locale: "en_US",
+    locale: "en_AU",
     images: [
       {
         url: "/images/hero-poster.jpg",

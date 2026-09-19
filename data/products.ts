@@ -11,25 +11,55 @@
  * `formatPrice()` in `lib/format.ts`, never with raw string interpolation.
  */
 
+import { gstStatement } from "@/data/legal";
 import { shippingTerms } from "@/data/site";
 
 export type ProductCategory = "sponge" | "miswak" | "bundle";
 
-/**
- * A colour a product is stocked in.
- *
- * `swatch` is what the dot on the card renders, so a colourway can be listed
- * before its photography exists. `image` is optional for exactly that reason —
- * where it is absent the gallery falls back to the product's main shot, and the
- * swatch still tells the customer the colour is available.
- */
-export type Colorway = {
-  name: string;
-  /** Hex for the selector dot. */
-  swatch: string;
-  /** 4:5 product shot in this colour. Omit until the photograph exists. */
+/** One choosable value within a `ProductOption`. */
+export type ProductOptionValue = {
+  /**
+   * What the customer picks, and what ends up on the cart line, the order and
+   * the packing slip. Keep it the word a human would use — it is read by
+   * whoever packs the box, not just by code.
+   */
+  value: string;
+  /** Hex for a colour dot. Omit to render a labelled pill instead. */
+  swatch: string | null;
+  /** Added to the product's base price when this value is chosen, in AUD. */
+  priceDelta?: number;
+  /** Gallery shot to lead with once this value is chosen. */
   image?: string;
 };
+
+/**
+ * A choice the customer has to make before the product can go in the bag.
+ *
+ * Bundles are the reason this exists. "The Season" is one sponge and three
+ * sticks, but *which* sponge — plain or handled, and in which colour — is not
+ * decided by the product, it is decided by the buyer. Selling it without asking
+ * means either guessing on their behalf or chasing them by email afterwards.
+ *
+ * `showWhen` makes an option conditional on another option's value, which is
+ * what lets one bundle offer two different colour ranges: the plain sponge
+ * comes in six colours and the handled one in five, and only the set that
+ * matches the chosen style is ever shown. A hidden option is not required and
+ * is stripped from the selection, so a customer cannot carry a stale handled
+ * colour into a plain-sponge order.
+ */
+export type ProductOption = {
+  /** Stable key. Maps onto a Shopify option name when this moves to a backend. */
+  id: string;
+  label: string;
+  /** One line under the label, where the choice needs explaining. */
+  help?: string;
+  /** Only show this option while another option holds one of these values. */
+  showWhen?: { option: string; values: string[] };
+  values: ProductOptionValue[];
+};
+
+/** A customer's choices for one product, keyed by `ProductOption.id`. */
+export type OptionSelection = Record<string, string>;
 
 export type Product = {
   slug: string;
@@ -62,8 +92,12 @@ export type Product = {
    * depend on where a product happens to sit in the array.
    */
   featuredRank?: number;
-  /** Stocked colours. Omit for products that ship in one colour only. */
-  colorways?: Colorway[];
+  /**
+   * Choices required before this product can be added to the bag. Order
+   * matters — options render top to bottom, and a conditional option should
+   * come after the option it depends on.
+   */
+  options?: ProductOption[];
   /**
    * What it does for the person buying it, in three or four lines.
    *
@@ -83,7 +117,66 @@ export type Product = {
 };
 
 export const defaultShippingCopy =
-  `Dispatched from our studio within ${shippingTerms.dispatchDays} business days. Free standard shipping on Australian orders over $${shippingTerms.freeThreshold}; flat $${shippingTerms.flatRate} below that. International shipping is calculated at checkout. If your order takes more than 30 days to arrive we refund the shipping — see our shipping page. Everything ships in unbleached, plastic-free packaging.`;
+  `Dispatched from our studio within ${shippingTerms.dispatchDays} business days. Free standard shipping on Australian orders over $${shippingTerms.freeThreshold}; flat $${shippingTerms.flatRate} below that. International shipping is calculated at checkout. ${gstStatement} If your order takes more than 30 days to arrive we refund the shipping — see our shipping page. Everything ships in unbleached, plastic-free packaging.`;
+
+/**
+ * The two colour ranges, declared once.
+ *
+ * Both the standalone sponges and every bundle that contains one offer these,
+ * so a colour that goes out of stock has to disappear from five products at
+ * once. Declaring them here is the difference between one edit and five, and
+ * between a bundle that can be ordered in a colour we do not stock and one
+ * that cannot.
+ */
+const NET_SPONGE_COLOURS: ProductOptionValue[] = [
+  { value: "White", swatch: "#F2EFE9", image: "/images/sponge-white.jpg" },
+  { value: "Red", swatch: "#C4231F", image: "/images/sponge-red.jpg" },
+  { value: "Blue", swatch: "#2F6DA8", image: "/images/sponge-blue.jpg" },
+  { value: "Pink", swatch: "#E45C9C", image: "/images/sponge-pink.jpg" },
+  { value: "Yellow", swatch: "#E0A83C", image: "/images/sponge-yellow.jpg" },
+  { value: "Purple", swatch: "#7E4C93", image: "/images/sponge-purple.jpg" },
+];
+
+const HANDLED_SPONGE_COLOURS: ProductOptionValue[] = [
+  { value: "Black", swatch: "#241F1E", image: "/images/sponge-handle-black.jpg" },
+  { value: "Blue", swatch: "#1F4F86", image: "/images/sponge-handle-blue.jpg" },
+  { value: "Pink", swatch: "#F09099", image: "/images/sponge-handle-pink.jpg" },
+  { value: "Purple", swatch: "#8F5F90", image: "/images/sponge-handle-purple.jpg" },
+  { value: "White", swatch: "#F2EDDB", image: "/images/sponge-handle-white.jpg" },
+];
+
+/**
+ * Upgrading the sponge inside a bundle to the handled version.
+ *
+ * $6 is exactly the gap between the two sponges bought on their own ($22 and
+ * $28), which keeps every "$X less than buying separately" line on the site
+ * true at both settings rather than only at the default one.
+ */
+const HANDLE_UPGRADE_AUD = 6;
+
+const BUNDLE_SPONGE_OPTIONS: ProductOption[] = [
+  {
+    id: "sponge-style",
+    label: "Sponge style",
+    help: "The handled version has a braided cord at each end, for pulling it taut across your own back.",
+    values: [
+      { value: "Regular", swatch: null },
+      { value: "With handles", swatch: null, priceDelta: HANDLE_UPGRADE_AUD },
+    ],
+  },
+  {
+    id: "sponge-colour",
+    label: "Sponge colour",
+    showWhen: { option: "sponge-style", values: ["Regular"] },
+    values: NET_SPONGE_COLOURS,
+  },
+  {
+    id: "handled-sponge-colour",
+    label: "Sponge colour",
+    showWhen: { option: "sponge-style", values: ["With handles"] },
+    values: HANDLED_SPONGE_COLOURS,
+  },
+];
 
 export const products: Product[] = [
   {
@@ -117,14 +210,7 @@ export const products: Product[] = [
     },
     featured: true,
     featuredRank: 2,
-    colorways: [
-      { name: "White", swatch: "#F2EFE9", image: "/images/sponge-white.jpg" },
-      { name: "Red", swatch: "#C4231F", image: "/images/sponge-red.jpg" },
-      { name: "Blue", swatch: "#2F6DA8", image: "/images/sponge-blue.jpg" },
-      { name: "Pink", swatch: "#E45C9C", image: "/images/sponge-pink.jpg" },
-      { name: "Yellow", swatch: "#E0A83C", image: "/images/sponge-yellow.jpg" },
-      { name: "Purple", swatch: "#7E4C93", image: "/images/sponge-purple.jpg" },
-    ],
+    options: [{ id: "colour", label: "Colour", values: NET_SPONGE_COLOURS }],
   },
   {
     slug: "african-net-sponge-handle",
@@ -155,13 +241,7 @@ export const products: Product[] = [
         "/images/sponge-handle-black.jpg",
       ],
     },
-    colorways: [
-      { name: "Black", swatch: "#241F1E", image: "/images/sponge-handle-black.jpg" },
-      { name: "Blue", swatch: "#1F4F86", image: "/images/sponge-handle-blue.jpg" },
-      { name: "Pink", swatch: "#F09099", image: "/images/sponge-handle-pink.jpg" },
-      { name: "Purple", swatch: "#8F5F90", image: "/images/sponge-handle-purple.jpg" },
-      { name: "White", swatch: "#F2EDDB", image: "/images/sponge-handle-white.jpg" },
-    ],
+    options: [{ id: "colour", label: "Colour", values: HANDLED_SPONGE_COLOURS }],
   },
   {
     slug: "miswak-stick-single",
@@ -254,6 +334,7 @@ export const products: Product[] = [
         "/images/sponge-white-roll.jpg",
       ],
     },
+    options: BUNDLE_SPONGE_OPTIONS,
   },
   {
     // The hero. Highest contribution of any product a first-time customer is
@@ -287,6 +368,7 @@ export const products: Product[] = [
         "/images/lifestyle-counter.jpg",
       ],
     },
+    options: BUNDLE_SPONGE_OPTIONS,
     featured: true,
     featuredRank: 1,
   },
@@ -319,6 +401,12 @@ export const products: Product[] = [
         "/images/miswak-3-pack.jpg",
       ],
     },
+    // Both sponges are in the box by definition, so there is no style choice
+    // here — there are two colour choices, one per sponge.
+    options: [
+      { id: "colour", label: "Net sponge colour", values: NET_SPONGE_COLOURS },
+      { id: "handled-colour", label: "Handled sponge colour", values: HANDLED_SPONGE_COLOURS },
+    ],
   },
 ];
 
@@ -364,4 +452,93 @@ export function getRelatedProducts(slug: string, limit = 3): Product[] {
 export function getPriceFrom(category?: ProductCategory): number {
   const pool = category ? products.filter((p) => p.category === category) : products;
   return Math.min(...pool.map((p) => p.price));
+}
+
+/* -------------------------------------------------------------------------
+ * Option resolution
+ *
+ * Three rules hold everything together, and they have to agree everywhere the
+ * product is priced — the picker, the buy button, the cart line and the
+ * subtotal — or the customer is quoted one number and charged another:
+ *
+ *   1. An option is only live when its `showWhen` condition is met.
+ *   2. Only live options are required, and only live options are priced.
+ *   3. A selection for a dead option is discarded, not remembered.
+ *
+ * Rule 3 is the one that bites. Pick "With handles", choose Black, then switch
+ * back to "Regular": without it the order still carries Black, which the plain
+ * sponge is not made in.
+ * ---------------------------------------------------------------------- */
+
+/** The options actually in play given what has been chosen so far. */
+export function getLiveOptions(product: Product, selection: OptionSelection): ProductOption[] {
+  return (product.options ?? []).filter(
+    (option) =>
+      !option.showWhen || option.showWhen.values.includes(selection[option.showWhen.option] ?? "")
+  );
+}
+
+/** Drops selections for options that are no longer shown. */
+export function pruneSelection(product: Product, selection: OptionSelection): OptionSelection {
+  const live = getLiveOptions(product, selection);
+  const pruned: OptionSelection = {};
+  for (const option of live) {
+    const chosen = selection[option.id];
+    if (chosen && option.values.some((value) => value.value === chosen)) pruned[option.id] = chosen;
+  }
+  return pruned;
+}
+
+/** Every live option has a valid value — i.e. this is ready to add to the bag. */
+export function isSelectionComplete(product: Product, selection: OptionSelection): boolean {
+  return getLiveOptions(product, selection).every((option) =>
+    option.values.some((value) => value.value === selection[option.id])
+  );
+}
+
+/** The live options still waiting on a choice, in the order they are shown. */
+export function missingOptions(product: Product, selection: OptionSelection): ProductOption[] {
+  return getLiveOptions(product, selection).filter(
+    (option) => !option.values.some((value) => value.value === selection[option.id])
+  );
+}
+
+/** Price for one unit with these choices applied. */
+export function unitPrice(product: Product, selection: OptionSelection = {}): number {
+  return getLiveOptions(product, selection).reduce((total, option) => {
+    const chosen = option.values.find((value) => value.value === selection[option.id]);
+    return total + (chosen?.priceDelta ?? 0);
+  }, product.price);
+}
+
+/** The image a selection points at, if any option carries one. Last live wins. */
+export function selectedImage(product: Product, selection: OptionSelection): string | undefined {
+  let image: string | undefined;
+  for (const option of getLiveOptions(product, selection)) {
+    const chosen = option.values.find((value) => value.value === selection[option.id]);
+    if (chosen?.image) image = chosen.image;
+  }
+  return image;
+}
+
+/** "Regular · Blue" — for the cart line, the order summary and the packing slip. */
+export function describeSelection(product: Product, selection: OptionSelection): string {
+  return getLiveOptions(product, selection)
+    .map((option) => selection[option.id])
+    .filter(Boolean)
+    .join(" · ");
+}
+
+/**
+ * Identity of a cart line.
+ *
+ * Two of the same product in different colours are two lines, not one with a
+ * quantity of two — they are picked, packed and possibly returned separately.
+ * Sorting the keys means the identity does not depend on the order the
+ * customer happened to click things in.
+ */
+export function cartLineKey(slug: string, selection: OptionSelection = {}): string {
+  const entries = Object.entries(selection).sort(([a], [b]) => a.localeCompare(b));
+  if (!entries.length) return slug;
+  return `${slug}|${entries.map(([id, value]) => `${id}=${value}`).join("|")}`;
 }

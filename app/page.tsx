@@ -31,7 +31,7 @@ export default function HomePage() {
         secondaryHref="/faq"
         notes={[
           `Free AU shipping over $${shippingTerms.freeThreshold}`,
-          "Lasts a year",
+          "A year of daily use",
           "Plastic-free packaging",
         ]}
         posterSrc="/images/editorial-ritual-in-use.jpg"

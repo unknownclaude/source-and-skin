@@ -1,6 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+
+import { site } from "@/data/site";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
@@ -142,6 +145,22 @@ export default function ContactForm() {
           </p>
         )}
       </div>
+
+      {/* Collection notice. Australian Privacy Principle 5 requires the
+          person to be told, at or before the point of collection, who is
+          collecting their information and what it will be used for — a link to
+          the policy elsewhere on the site is not the same thing as telling
+          them here, while they are typing it in. */}
+      <p className="max-w-prose text-xs leading-relaxed text-charcoal/55">
+        {site.name} collects your name, email address and message so we can answer you, and for no
+        other purpose. We will not add you to any mailing list from this form, and we will not pass
+        what you write to anyone else. Correspondence is deleted once it is no longer useful. You
+        can ask us what we hold about you, or ask us to correct or delete it, at any time — see our{" "}
+        <Link href="/privacy" className="link-underline">
+          privacy policy
+        </Link>
+        .
+      </p>
 
       <button
         type="submit"

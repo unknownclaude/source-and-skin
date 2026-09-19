@@ -10,7 +10,15 @@ import {
   useState,
 } from "react";
 
-import { products, type Product } from "@/data/products";
+import {
+  cartLineKey,
+  describeSelection,
+  products,
+  pruneSelection,
+  unitPrice,
+  type OptionSelection,
+  type Product,
+} from "@/data/products";
 
 /**
  * Local-only cart.
@@ -22,14 +30,22 @@ import { products, type Product } from "@/data/products";
  * README → "Wiring up real checkout".
  */
 
-export type CartLine = { slug: string; quantity: number };
+/**
+ * A line is a product PLUS the choices made about it.
+ *
+ * Keying by slug alone would merge a red sponge and a blue one into one line
+ * of two, which is wrong at every stage after it: the customer sees one item
+ * where they bought two different things, and whoever packs the box has no
+ * record of which colours to put in it.
+ */
+export type CartLine = { slug: string; quantity: number; selection: OptionSelection };
 
 type CartState = { lines: CartLine[] };
 
 type CartAction =
-  | { type: "add"; slug: string; quantity: number }
-  | { type: "setQuantity"; slug: string; quantity: number }
-  | { type: "remove"; slug: string }
+  | { type: "add"; slug: string; quantity: number; selection: OptionSelection }
+  | { type: "setQuantity"; key: string; quantity: number }
+  | { type: "remove"; key: string }
   | { type: "clear" }
   | { type: "hydrate"; lines: CartLine[] };
 
@@ -41,13 +57,21 @@ function reducer(state: CartState, action: CartAction): CartState {
     case "hydrate":
       return { lines: action.lines };
     case "add": {
-      const existing = state.lines.find((line) => line.slug === action.slug);
+      const key = cartLineKey(action.slug, action.selection);
+      const existing = state.lines.find(
+        (line) => cartLineKey(line.slug, line.selection) === key
+      );
       if (!existing) {
-        return { lines: [...state.lines, { slug: action.slug, quantity: action.quantity }] };
+        return {
+          lines: [
+            ...state.lines,
+            { slug: action.slug, quantity: action.quantity, selection: action.selection },
+          ],
+        };
       }
       return {
         lines: state.lines.map((line) =>
-          line.slug === action.slug
+          cartLineKey(line.slug, line.selection) === key
             ? { ...line, quantity: Math.min(MAX_PER_LINE, line.quantity + action.quantity) }
             : line
         ),
@@ -55,18 +79,24 @@ function reducer(state: CartState, action: CartAction): CartState {
     }
     case "setQuantity": {
       if (action.quantity < 1) {
-        return { lines: state.lines.filter((line) => line.slug !== action.slug) };
+        return {
+          lines: state.lines.filter(
+            (line) => cartLineKey(line.slug, line.selection) !== action.key
+          ),
+        };
       }
       return {
         lines: state.lines.map((line) =>
-          line.slug === action.slug
+          cartLineKey(line.slug, line.selection) === action.key
             ? { ...line, quantity: Math.min(MAX_PER_LINE, action.quantity) }
             : line
         ),
       };
     }
     case "remove":
-      return { lines: state.lines.filter((line) => line.slug !== action.slug) };
+      return {
+        lines: state.lines.filter((line) => cartLineKey(line.slug, line.selection) !== action.key),
+      };
     case "clear":
       return { lines: [] };
     default:
@@ -74,7 +104,16 @@ function reducer(state: CartState, action: CartAction): CartState {
   }
 }
 
-export type HydratedLine = CartLine & { product: Product; lineTotal: number };
+export type HydratedLine = CartLine & {
+  product: Product;
+  /** Stable identity — what `setQuantity` and `remove` take. */
+  key: string;
+  /** Price of one, with any option surcharge applied. */
+  unitPrice: number;
+  lineTotal: number;
+  /** "Regular · Blue", or "" when the product has no options. */
+  selectionLabel: string;
+};
 
 type CartContextValue = {
   lines: HydratedLine[];
@@ -83,9 +122,9 @@ type CartContextValue = {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  add: (slug: string, quantity?: number) => void;
-  setQuantity: (slug: string, quantity: number) => void;
-  remove: (slug: string) => void;
+  add: (slug: string, quantity?: number, selection?: OptionSelection) => void;
+  setQuantity: (key: string, quantity: number) => void;
+  remove: (key: string) => void;
   clear: () => void;
 };
 
@@ -103,14 +142,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (!raw) return;
       const parsed: unknown = JSON.parse(raw);
       if (!Array.isArray(parsed)) return;
-      const lines = parsed.filter(
-        (line): line is CartLine =>
-          typeof line === "object" &&
-          line !== null &&
-          typeof (line as CartLine).slug === "string" &&
-          typeof (line as CartLine).quantity === "number" &&
-          products.some((product) => product.slug === (line as CartLine).slug)
-      );
+      // A stored cart can outlive the catalogue it was built from, so the
+      // selection is re-validated against the product as it is TODAY — a
+      // colour we have since dropped is pruned rather than ordered.
+      const lines = parsed.flatMap<CartLine>((entry) => {
+        if (typeof entry !== "object" || entry === null) return [];
+        const candidate = entry as Partial<CartLine>;
+        if (typeof candidate.slug !== "string" || typeof candidate.quantity !== "number") return [];
+        const product = products.find((item) => item.slug === candidate.slug);
+        if (!product) return [];
+
+        const stored =
+          typeof candidate.selection === "object" && candidate.selection !== null
+            ? (candidate.selection as OptionSelection)
+            : {};
+        return [
+          {
+            slug: product.slug,
+            quantity: candidate.quantity,
+            selection: pruneSelection(product, stored),
+          },
+        ];
+      });
       if (lines.length) dispatch({ type: "hydrate", lines });
     } catch {
       // A corrupt or unavailable store is not worth surfacing — start empty.
@@ -132,7 +185,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const hydrated = state.lines.flatMap<HydratedLine>((line) => {
       const product = products.find((candidate) => candidate.slug === line.slug);
       if (!product) return [];
-      return [{ ...line, product, lineTotal: product.price * line.quantity }];
+      const each = unitPrice(product, line.selection);
+      return [
+        {
+          ...line,
+          product,
+          key: cartLineKey(line.slug, line.selection),
+          unitPrice: each,
+          lineTotal: each * line.quantity,
+          selectionLabel: describeSelection(product, line.selection),
+        },
+      ];
     });
 
     return {
@@ -142,12 +205,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       isOpen,
       openCart,
       closeCart,
-      add: (slug, quantity = 1) => {
-        dispatch({ type: "add", slug, quantity });
+      add: (slug, quantity = 1, selection = {}) => {
+        dispatch({ type: "add", slug, quantity, selection });
         setIsOpen(true);
       },
-      setQuantity: (slug, quantity) => dispatch({ type: "setQuantity", slug, quantity }),
-      remove: (slug) => dispatch({ type: "remove", slug }),
+      setQuantity: (key, quantity) => dispatch({ type: "setQuantity", key, quantity }),
+      remove: (key) => dispatch({ type: "remove", key }),
       clear: () => dispatch({ type: "clear" }),
     };
   }, [state.lines, isOpen, openCart, closeCart]);
