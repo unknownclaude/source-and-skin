@@ -39,7 +39,11 @@ const config: Config = {
         editorial: "38rem",
       },
       spacing: {
-        section: "clamp(4.5rem, 9vw, 9rem)",
+        // Stacked sections each carry this top AND bottom, so the gap between
+        // two of them is double. At the old 9rem that was 288px of empty
+        // ground at every boundary — a third of a laptop screen spent on
+        // nothing, which is most of why the product grids read as sparse.
+        section: "clamp(3.5rem, 7vw, 7rem)",
         gutter: "clamp(1.25rem, 4vw, 3.5rem)",
       },
       transitionTimingFunction: {

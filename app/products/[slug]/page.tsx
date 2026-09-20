@@ -120,7 +120,7 @@ export default function ProductPage({ params }: PageProps) {
             </h2>
           </Reveal>
 
-          <div className="mt-12 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((item, index) => (
               <ProductCard key={item.slug} product={item} index={index} showFromPrefix={false} />
             ))}

@@ -84,7 +84,7 @@ export default function ShopGrid({ products }: { products: Product[] }) {
         {visible.length} {visible.length === 1 ? "product" : "products"}
       </p>
 
-      <div className="mt-8 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((product, index) => (
           <ProductCard
             key={product.slug}

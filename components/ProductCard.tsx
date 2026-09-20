@@ -51,7 +51,10 @@ export default function ProductCard({
         onBlur={() => setActive(false)}
       >
         <div
-          className="relative aspect-[4/5] w-full overflow-hidden"
+          // 3:4 rather than 4:5 — a taller frame gives the photograph more
+          // of the screen, and object-cover trims the sides rather than the
+          // top and bottom, so nothing is cropped off a subject's head.
+          className="relative aspect-[3/4] w-full overflow-hidden"
           style={{ backgroundColor: product.accentColor }}
         >
           <Image

@@ -17,10 +17,17 @@ type ProductSpotlightProps = {
 /**
  * Full-width product block on a solid accent ground.
  *
+ * The photograph bleeds to the edge of the viewport and fills the full height
+ * of the block. It used to be capped at `max-w-lg` and centred inside its
+ * column, which put a 512px image in the middle of a 1440px band of flat
+ * colour — the product ended up as a small tile surrounded by paint, and three
+ * of these stacked made the homepage read as mostly empty. A photograph given
+ * half the screen is the whole point of a spotlight.
+ *
  * The image has two states — the packed shot and the detail shot. Hover swaps
  * them on pointer devices; on touch, where hover does not exist, an explicit
- * toggle button does the same job. Text colour is derived from the accent so
- * contrast holds if the palette grows.
+ * toggle does the same job. Text colour is derived from the accent so contrast
+ * holds if the palette grows.
  */
 export default function ProductSpotlight({ product, reversed = false }: ProductSpotlightProps) {
   const [open, setOpen] = useState(false);
@@ -35,57 +42,43 @@ export default function ProductSpotlight({ product, reversed = false }: ProductS
       aria-labelledby={`spotlight-${product.slug}`}
     >
       <div
-        className={`edge grid items-center gap-10 py-section md:grid-cols-2 md:gap-16 ${
+        className={`grid items-stretch md:grid-cols-2 ${
           reversed ? "md:[&>*:first-child]:order-2" : ""
         }`}
       >
         <motion.div
-          className="relative"
+          className="relative aspect-[4/5] w-full sm:aspect-[16/11] md:aspect-auto md:min-h-[34rem] lg:min-h-[40rem]"
           initial={{ opacity: 0, y: reduceMotion ? 0 : 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          onMouseEnter={() => setOpen(true)}
+          onMouseLeave={() => setOpen(false)}
         >
-          <div
-            className="relative mx-auto aspect-[4/5] w-full max-w-lg overflow-hidden"
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
-          >
-            <Image
-              src={product.images.main}
-              alt={`${product.name}, packed`}
-              fill
-              sizes="(min-width: 768px) 45vw, 90vw"
-              className={`object-cover transition-opacity duration-[900ms] ease-editorial ${
-                open ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            <Image
-              src={product.images.alt}
-              alt={`${product.name}, in detail`}
-              fill
-              sizes="(min-width: 768px) 45vw, 90vw"
-              className={`object-cover transition-opacity duration-[900ms] ease-editorial ${
-                open ? "opacity-100" : "opacity-0"
-              }`}
-            />
-          </div>
-
-          {/* Touch devices get an explicit control for the same state. */}
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            aria-pressed={open}
-            className={`mx-auto mt-5 flex items-center gap-2 rounded-full border px-5 py-2.5 text-[0.68rem] uppercase tracking-[0.18em] transition-opacity hover:opacity-70 md:hidden ${
-              isLightText ? "border-cream/40" : "border-charcoal/25"
+          <Image
+            src={product.images.main}
+            alt={`${product.name}, packed`}
+            fill
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className={`object-cover transition-opacity duration-[900ms] ease-editorial ${
+              open ? "opacity-0" : "opacity-100"
             }`}
-          >
-            {open ? "See it packed" : "See the detail"}
-          </button>
+          />
+          <Image
+            src={product.images.alt}
+            alt={`${product.name}, in detail`}
+            fill
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className={`object-cover transition-opacity duration-[900ms] ease-editorial ${
+              open ? "opacity-100" : "opacity-0"
+            }`}
+          />
         </motion.div>
 
         <motion.div
-          className={reversed ? "md:pr-8" : "md:pl-8"}
+          className={`flex flex-col justify-center px-gutter py-section ${
+            reversed ? "md:pr-gutter md:pl-12 lg:pl-20" : "md:pl-gutter md:pr-12 lg:pr-20"
+          }`}
           initial={{ opacity: 0, y: reduceMotion ? 0 : 32 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
@@ -108,9 +101,20 @@ export default function ProductSpotlight({ product, reversed = false }: ProductS
 
           <p className="mt-8 font-serif text-2xl tabular-nums">{formatPrice(product.price)}</p>
 
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            aria-pressed={open}
+            className={`mt-6 self-start text-[0.68rem] uppercase tracking-[0.18em] underline underline-offset-4 transition-opacity hover:opacity-70 md:hidden ${
+              isLightText ? "text-cream/75" : "text-charcoal/65"
+            }`}
+          >
+            {open ? "See it packed" : "See the detail"}
+          </button>
+
           <Link
             href={`/products/${product.slug}`}
-            className={`mt-8 inline-flex items-center gap-3 rounded-full px-8 py-4 text-[0.72rem] uppercase tracking-[0.2em] transition-transform duration-500 ease-editorial hover:-translate-y-0.5 ${
+            className={`mt-8 inline-flex w-fit items-center gap-3 rounded-full px-8 py-4 text-[0.72rem] uppercase tracking-[0.2em] transition-transform duration-500 ease-editorial hover:-translate-y-0.5 ${
               isLightText ? "bg-cream text-charcoal" : "bg-charcoal text-cream"
             }`}
           >

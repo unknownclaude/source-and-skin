@@ -103,7 +103,7 @@ export default function HomePage() {
           Featured products
         </h2>
 
-        <div className="mt-14 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
           {featured.map((product, index) => (
             <ProductCard key={product.slug} product={product} index={index} priority={index === 0} />
           ))}
