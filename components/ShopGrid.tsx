@@ -84,16 +84,28 @@ export default function ShopGrid({ products }: { products: Product[] }) {
         {visible.length} {visible.length === 1 ? "product" : "products"}
       </p>
 
+      {/* A filtered list changes length, so which breakpoints strand the last
+          card changes with it — 7 items orphan at three columns but not at
+          two, 4 items the other way round. Both are worked out here rather
+          than assumed, because CSS cannot ask whether a count is odd. */}
       <div className="mt-8 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-        {visible.map((product, index) => (
+        {visible.map((product, index) => {
+          const isLast = index === visible.length - 1;
+          const spanSm = isLast && visible.length % 2 === 1 && visible.length > 1;
+          const spanLg = isLast && visible.length % 3 === 1 && visible.length > 1;
+
+          return (
           <ProductCard
             key={product.slug}
             product={product}
             index={index}
             priority={index < 3}
             showFromPrefix={false}
+            wide={spanLg}
+            className={`${spanSm ? "sm:col-span-2" : ""} ${spanLg ? "lg:col-span-3" : ""}`}
           />
-        ))}
+          );
+        })}
       </div>
     </>
   );

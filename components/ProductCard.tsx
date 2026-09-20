@@ -16,6 +16,18 @@ type ProductCardProps = {
   showFromPrefix?: boolean;
   priority?: boolean;
   index?: number;
+  /**
+   * Render across a full grid row, with a landscape frame.
+   *
+   * Used for a card that would otherwise sit alone at the end of a row. Seven
+   * products in three columns leaves two empty cells, and two empty cells
+   * beside one product is the emptiest thing on the page — worse than the
+   * card being large. Widening it fills the row and reads as a deliberate
+   * closing note rather than a gap.
+   */
+  wide?: boolean;
+  /** Grid placement from the parent — column spans, nothing visual. */
+  className?: string;
 };
 
 /**
@@ -30,6 +42,8 @@ export default function ProductCard({
   showFromPrefix = true,
   priority = false,
   index = 0,
+  wide = false,
+  className,
 }: ProductCardProps) {
   const [active, setActive] = useState(false);
   // Null when nobody has reviewed this yet — the row simply does not render.
@@ -37,6 +51,7 @@ export default function ProductCard({
 
   return (
     <motion.article
+      className={className}
       initial={{ opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
@@ -53,8 +68,12 @@ export default function ProductCard({
         <div
           // 3:4 rather than 4:5 — a taller frame gives the photograph more
           // of the screen, and object-cover trims the sides rather than the
-          // top and bottom, so nothing is cropped off a subject's head.
-          className="relative aspect-[3/4] w-full overflow-hidden"
+          // top and bottom, so nothing is cropped off a subject's head. A wide
+          // card spans the row, so it takes a landscape frame instead of
+          // becoming three times as tall as its neighbours.
+          className={`relative w-full overflow-hidden ${
+            wide ? "aspect-[16/9] sm:aspect-[21/9]" : "aspect-[3/4]"
+          }`}
           style={{ backgroundColor: product.accentColor }}
         >
           <Image
@@ -62,7 +81,7 @@ export default function ProductCard({
             alt={product.name}
             fill
             priority={priority}
-            sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"
+            sizes={wide ? "100vw" : "(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw"}
             className={`object-cover transition-[opacity,transform] duration-[900ms] ease-editorial ${
               active ? "scale-[1.03] opacity-0" : "scale-100 opacity-100"
             }`}
