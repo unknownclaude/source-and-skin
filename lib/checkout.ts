@@ -1,58 +1,167 @@
 import type { HydratedLine } from "@/components/CartProvider";
+import { anyPaymentMethodEnabled } from "@/data/payments";
+import {
+  describeSelection,
+  missingOptions,
+  products,
+  type OptionSelection,
+  type Product,
+} from "@/data/products";
+import { findVariantId } from "@/data/variants";
 import { withAttribution } from "@/lib/attribution";
 
 /**
- * The handoff to Shopify checkout.
+ * The handoff from this site's bag to a checkout that can take money.
  *
- * A cart permalink is the simplest route off this site and into a real
- * checkout — no Storefront API, no tokens:
+ * A cart permalink is the whole mechanism — no Storefront API, no tokens, no
+ * secrets in the bundle:
  *
  *   https://SHOP.myshopify.com/cart/VARIANT_ID:QTY,VARIANT_ID:QTY
  *
- * Two things have to be true before it works, and exactly one of them is code:
+ * Shopify builds a cart from that URL and runs its own hosted checkout, which
+ * is the point: card numbers are typed on Shopify's domain, under Shopify's
+ * PCI compliance, and never touch this application. There is nothing here to
+ * breach.
  *
- *   1. NEXT_PUBLIC_SHOPIFY_DOMAIN has to be set.
- *   2. Every product/option combination needs its Shopify variant ID. The
- *      catalogue has options but no variant IDs, so `variantIdFor` is the one
- *      function left to fill in — map a slug plus a selection onto the numeric
- *      ID Shopify generated for that variant. Until it returns something this
- *      builder returns null, and the cart keeps saying checkout is not live
- *      rather than sending anyone to a broken URL.
+ * Three things have to be true before the button can be live, and this module
+ * reports which one is missing rather than returning a bare null:
  *
- * `withAttribution` is applied last and is the reason this file exists at all.
- * Shopify starts a new session at this URL and reads the campaign from it; if
- * the UTMs are not carried over, every order arrives attributed to a referral
- * from our own domain. See lib/attribution.ts.
+ *   1. `NEXT_PUBLIC_SHOPIFY_DOMAIN` is set — where to send them.
+ *   2. At least one method in `data/payments.ts` is enabled — meaning money
+ *      can actually change hands at the other end. A Shopify store without
+ *      Shopify Payments activated still *renders* a checkout; it just cannot
+ *      complete one, and sending a customer into that is worse than a button
+ *      that says it is not ready.
+ *   3. Every line maps to a variant ID (`data/variants.ts`).
+ *
+ * `withAttribution` is applied last, and is the reason a separate module
+ * exists for this at all. Shopify starts a fresh session at that URL and reads
+ * the campaign from the query string; without it, every order arrives
+ * attributed to a referral from our own domain and the ad that paid for the
+ * sale disappears from the report. See lib/attribution.ts.
  */
+
+export type CheckoutState =
+  /** Nothing in the bag. */
+  | { status: "empty" }
+  /** No `NEXT_PUBLIC_SHOPIFY_DOMAIN`. Nowhere to send anyone. */
+  | { status: "not-configured" }
+  /** Destination known, but no payment method can take money yet. */
+  | { status: "no-payment-methods" }
+  /**
+   * A line has no Shopify variant. Carries the human description of each
+   * offending line, because the alternative — dropping it from the URL — bills
+   * someone for three items and ships them two.
+   */
+  | { status: "unmapped"; lines: string[] }
+  /** Good to go. */
+  | { status: "ready"; url: string };
+
+function shopDomain(): string | undefined {
+  return process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN;
+}
+
+/** True when a destination exists and something there can take a payment. */
+export function isCheckoutLive(): boolean {
+  return Boolean(shopDomain()) && anyPaymentMethodEnabled();
+}
 
 /**
- * TODO(shopify): return the numeric variant ID for a configured line.
+ * Where the bag stands: either a URL to send someone to, or exactly why not.
  *
- * Shopify creates one variant per option combination, so a bundle with a
- * style and a colour has as many variants as combinations. Fetch them once
- * with `productVariants` and keep the map beside the catalogue.
+ * The caller is expected to render the reason. A checkout button that is
+ * simply disabled, with no explanation, reads as a broken site; one that says
+ * "payments are being activated — nothing can be charged yet" reads as an
+ * honest one, and the customer comes back.
  */
-function variantIdFor(_line: HydratedLine): string | null {
-  return null;
-}
+export function checkoutState(lines: HydratedLine[]): CheckoutState {
+  if (lines.length === 0) return { status: "empty" };
 
-export function isCheckoutConfigured(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN);
-}
-
-/** The checkout URL for a bag, or null when the handoff is not ready. */
-export function buildCheckoutUrl(lines: HydratedLine[]): string | null {
-  const domain = process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN;
-  if (!domain || lines.length === 0) return null;
+  const domain = shopDomain();
+  if (!domain) return { status: "not-configured" };
+  if (!anyPaymentMethodEnabled()) return { status: "no-payment-methods" };
 
   const parts: string[] = [];
+  const unmapped: string[] = [];
+
   for (const line of lines) {
-    const variantId = variantIdFor(line);
-    // One unmapped line would silently drop an item from the order, so the
-    // whole handoff is refused instead.
-    if (!variantId) return null;
+    const variantId = findVariantId(line.slug, line.selection);
+    if (!variantId) {
+      unmapped.push(
+        line.selectionLabel ? `${line.product.name} (${line.selectionLabel})` : line.product.name
+      );
+      continue;
+    }
     parts.push(`${variantId}:${line.quantity}`);
   }
 
-  return withAttribution(`https://${domain}/cart/${parts.join(",")}`);
+  if (unmapped.length) return { status: "unmapped", lines: unmapped };
+
+  return { status: "ready", url: withAttribution(`https://${domain}/cart/${parts.join(",")}`) };
+}
+
+/* -------------------------------------------------------------------------
+ * Coverage
+ *
+ * Every combination this site can put in a bag needs a variant on the other
+ * side. Adding a seventh sponge colour to `data/products.ts` is a one-line
+ * change that silently creates six unsellable bundle configurations, and the
+ * failure surfaces at the checkout button — after the customer has chosen.
+ *
+ * So the catalogue is enumerated and checked against the map, and the result
+ * is shown on the checkout page's setup panel while payments are off. It is a
+ * warning rather than a build failure on purpose: a missing variant should
+ * stop that one line being sold, not stop the site from deploying.
+ * ---------------------------------------------------------------------- */
+
+/** Every valid combination of choices for a product. */
+export function enumerateSelections(product: Product): OptionSelection[] {
+  let frontier: OptionSelection[] = [{}];
+
+  // Each pass fills one outstanding option on every branch, so this terminates
+  // after as many passes as the product has options.
+  for (;;) {
+    const next: OptionSelection[] = [];
+    let expanded = false;
+
+    for (const selection of frontier) {
+      const outstanding = missingOptions(product, selection);
+      if (!outstanding.length) {
+        next.push(selection);
+        continue;
+      }
+      expanded = true;
+      for (const value of outstanding[0].values) {
+        next.push({ ...selection, [outstanding[0].id]: value.value });
+      }
+    }
+
+    frontier = next;
+    if (!expanded) return frontier;
+  }
+}
+
+export type VariantCoverage = {
+  /** Combinations the site can produce. */
+  total: number;
+  /** Those with a Shopify variant behind them. */
+  mapped: number;
+  /** Human descriptions of the ones without. */
+  missing: string[];
+};
+
+export function variantCoverage(): VariantCoverage {
+  let total = 0;
+  const missing: string[] = [];
+
+  for (const product of products) {
+    for (const selection of enumerateSelections(product)) {
+      total += 1;
+      if (findVariantId(product.slug, selection)) continue;
+      const label = describeSelection(product, selection);
+      missing.push(label ? `${product.name} — ${label}` : product.name);
+    }
+  }
+
+  return { total, mapped: total - missing.length, missing };
 }

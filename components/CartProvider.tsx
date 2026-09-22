@@ -15,6 +15,7 @@ import {
   describeSelection,
   products,
   pruneSelection,
+  selectedImage,
   unitPrice,
   type OptionSelection,
   type Product,
@@ -113,12 +114,33 @@ export type HydratedLine = CartLine & {
   lineTotal: number;
   /** "Regular · Blue", or "" when the product has no options. */
   selectionLabel: string;
+  /**
+   * The shot that matches what was chosen, falling back to the product's own.
+   *
+   * The same image the product page led with once the colour was picked — so
+   * the bag confirms the choice rather than showing a stock photograph of a
+   * different colour and quietly undermining it. Colour is the single most
+   * common thing people get wrong in an order, and a thumbnail is a faster
+   * check than reading the label beside it.
+   */
+  image: string;
 };
 
 type CartContextValue = {
   lines: HydratedLine[];
   count: number;
   subtotal: number;
+  /**
+   * False until localStorage has been read.
+   *
+   * The bag is restored in an effect, so the server HTML and the first client
+   * paint both show an empty cart. The drawer can live with that — it only
+   * opens on a click, by which time this is true. A full checkout page cannot:
+   * without this flag it renders "your bag is empty" for a frame to someone
+   * who is standing at the payment step with four items, which reads as the
+   * site having lost their order.
+   */
+  hydrated: boolean;
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
@@ -133,6 +155,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { lines: [] });
   const [isOpen, setIsOpen] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   // Restore on mount only — never during render, so SSR and the first client
   // paint agree and React does not warn about a hydration mismatch.
@@ -167,6 +190,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (lines.length) dispatch({ type: "hydrate", lines });
     } catch {
       // A corrupt or unavailable store is not worth surfacing — start empty.
+    } finally {
+      // In `finally` so a thrown parse does not leave the UI waiting forever
+      // on a bag that is never coming.
+      setHydrated(true);
     }
   }, []);
 
@@ -182,7 +209,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const closeCart = useCallback(() => setIsOpen(false), []);
 
   const value = useMemo<CartContextValue>(() => {
-    const hydrated = state.lines.flatMap<HydratedLine>((line) => {
+    const hydratedLines = state.lines.flatMap<HydratedLine>((line) => {
       const product = products.find((candidate) => candidate.slug === line.slug);
       if (!product) return [];
       const each = unitPrice(product, line.selection);
@@ -194,14 +221,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           unitPrice: each,
           lineTotal: each * line.quantity,
           selectionLabel: describeSelection(product, line.selection),
+          image: selectedImage(product, line.selection) ?? product.images.main,
         },
       ];
     });
 
     return {
-      lines: hydrated,
-      count: hydrated.reduce((total, line) => total + line.quantity, 0),
-      subtotal: hydrated.reduce((total, line) => total + line.lineTotal, 0),
+      lines: hydratedLines,
+      count: hydratedLines.reduce((total, line) => total + line.quantity, 0),
+      subtotal: hydratedLines.reduce((total, line) => total + line.lineTotal, 0),
+      hydrated,
       isOpen,
       openCart,
       closeCart,
@@ -213,7 +242,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       remove: (key) => dispatch({ type: "remove", key }),
       clear: () => dispatch({ type: "clear" }),
     };
-  }, [state.lines, isOpen, openCart, closeCart]);
+  }, [state.lines, hydrated, isOpen, openCart, closeCart]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

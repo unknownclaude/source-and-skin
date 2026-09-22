@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 import CartCrossSell from "@/components/CartCrossSell";
 import { useCart } from "@/components/CartProvider";
@@ -15,20 +15,15 @@ import { formatPrice } from "@/lib/format";
 /**
  * Slide-over bag.
  *
- * Checkout is intentionally inert — the button explains itself rather than
- * pretending to take payment. See README → "Wiring up real checkout" for where
- * a Shopify or Stripe handoff plugs in.
+ * It ends at a link to /checkout rather than at a payment button. The bag is
+ * for changing your mind about what is in it; the decision to spend money
+ * belongs on a page big enough to show the total with shipping in it, the
+ * terms being agreed to, and who ends up handling the card. That page also
+ * explains itself when payments are not live yet, so this button always has
+ * somewhere real to go.
  */
 export default function CartDrawer() {
   const { lines, subtotal, isOpen, closeCart, setQuantity, remove } = useCart();
-  const [accepted, setAccepted] = useState(false);
-
-  // Reset acceptance whenever the bag closes. A tick left over from an earlier
-  // bag — different items, possibly different terms — is not agreement to this
-  // one, and re-asking costs the customer one click.
-  useEffect(() => {
-    if (!isOpen) setAccepted(false);
-  }, [isOpen]);
   const panelRef = useRef<HTMLDivElement>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);
 
@@ -135,7 +130,7 @@ export default function CartDrawer() {
                         className="relative h-24 w-20 shrink-0 overflow-hidden bg-sand"
                       >
                         <Image
-                          src={line.product.images.main}
+                          src={line.image}
                           alt={line.product.name}
                           fill
                           sizes="80px"
@@ -210,53 +205,18 @@ export default function CartDrawer() {
                     <span className="font-serif text-2xl tabular-nums">{formatPrice(subtotal)}</span>
                   </div>
                   <p className="mt-2 text-xs leading-relaxed text-charcoal/55">
-                    {`${gstStatement} Shipping is calculated at checkout. Free Australian shipping over $${shippingTerms.freeThreshold}.`}
+                    {`${gstStatement} Free Australian shipping over $${shippingTerms.freeThreshold}.`}
                   </p>
 
-                  {/* Agreement is an act, not a footer link. A tick box the
-                      customer has to find and check ("clickwrap") is the form
-                      Australian courts have been willing to enforce; terms
-                      merely linked at the bottom of a page ("browsewrap") are
-                      far weaker, because nothing shows the buyer ever saw
-                      them. The box starts unticked on purpose — a pre-ticked
-                      one is not consent to anything. */}
-                  <div className="mt-5 flex items-start gap-3">
-                    <input
-                      id="accept-terms"
-                      type="checkbox"
-                      checked={accepted}
-                      onChange={(event) => setAccepted(event.target.checked)}
-                      className="mt-0.5 h-4 w-4 shrink-0 accent-charcoal"
-                    />
-                    <label htmlFor="accept-terms" className="text-xs leading-relaxed text-charcoal/70">
-                      I have read and agree to the{" "}
-                      <Link href="/terms" onClick={closeCart} className="link-underline">
-                        Terms of sale
-                      </Link>
-                      ,{" "}
-                      <Link href="/returns" onClick={closeCart} className="link-underline">
-                        Returns &amp; refunds
-                      </Link>{" "}
-                      and{" "}
-                      <Link href="/privacy" onClick={closeCart} className="link-underline">
-                        Privacy policy
-                      </Link>
-                      . My rights under the Australian Consumer Law are not affected by agreeing.
-                    </label>
-                  </div>
-
-                  <button
-                    type="button"
-                    disabled
-                    aria-describedby="checkout-state"
-                    className="mt-5 w-full cursor-not-allowed rounded-full bg-charcoal py-4 text-[0.72rem] uppercase tracking-[0.18em] text-cream opacity-45"
+                  <Link
+                    href="/checkout"
+                    onClick={closeCart}
+                    className="mt-6 block rounded-full bg-charcoal py-4 text-center text-[0.72rem] uppercase tracking-[0.18em] text-cream transition-all duration-500 ease-editorial hover:-translate-y-0.5"
                   >
-                    Checkout — coming soon
-                  </button>
-                  <p id="checkout-state" className="mt-3 text-center text-[0.7rem] text-charcoal/45">
-                    {accepted
-                      ? "Payments are not live yet — nothing can be charged."
-                      : "Tick the box above to continue once payments are live."}
+                    Review and check out
+                  </Link>
+                  <p className="mt-3 text-center text-[0.7rem] text-charcoal/45">
+                    Shipping and your total are shown on the next page. Nothing is charged there.
                   </p>
                 </footer>
               </>

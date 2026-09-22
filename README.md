@@ -31,15 +31,16 @@ turn each piece on.
 | `RESEND_API_KEY` | Sending from the contact form |
 | `CONTACT_FROM_EMAIL` | The verified sender address those emails come from |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Analytics (`components/Analytics.tsx`) |
-| `NEXT_PUBLIC_SHOPIFY_DOMAIN` | The checkout handoff (`lib/checkout.ts`) |
+| `NEXT_PUBLIC_SHOPIFY_DOMAIN` | The checkout handoff (`lib/checkout.ts`) — see [Payments and checkout](#payments-and-checkout) before setting it |
 
 Without `RESEND_API_KEY` the contact route returns 503 and the UI shows the
 business email address. That is deliberate: a contact form that reports
 success while dropping the message is the one failure mode worth engineering
 against, because the customer stops trying.
 
-The checkout handoff also needs Shopify variant IDs — see the TODO in
-`lib/checkout.ts`, which is the single function left to fill in.
+The checkout handoff needs more than that env var — see
+[Payments and checkout](#payments-and-checkout). `/checkout` lists what is
+outstanding on the page itself while payments are off.
 
 ---
 
@@ -57,14 +58,14 @@ so a rename is a one-line change.
 
 ### `data/products.ts` — the catalogue
 
-Five seeded products. The `Product` type is the app-facing contract:
+Seven seeded products. The `Product` type is the app-facing contract:
 
 ```ts
 type Product = {
   slug: string;
   name: string;
   category: "sponge" | "miswak" | "bundle";
-  price: number;            // major units (USD), formatted by lib/format.ts
+  price: number;            // major units (AUD), formatted by lib/format.ts
   tagline: string;
   description: string;
   howToUse: string;
@@ -181,52 +182,94 @@ happy to ship on its own.
 
 ---
 
-## Wiring up real checkout
+## Payments and checkout
 
-The cart is real but local: `components/CartProvider.tsx` holds line items in a
-reducer and mirrors them to `localStorage`. Nothing leaves the browser, and the
-checkout button in the drawer is deliberately inert and labelled as such.
+The bag is local: `components/CartProvider.tsx` holds line items in a reducer
+and mirrors them to `localStorage`. Nothing leaves the browser until someone
+presses the button on `/checkout`, which hands them to Shopify's hosted
+checkout with the bag encoded in the URL:
 
-Keep `CartProvider`'s context as the UI contract — `lines`, `count`, `subtotal`,
-`add`, `setQuantity`, `remove` — and replace the internals.
+```
+https://SHOP.myshopify.com/cart/VARIANT_ID:QTY,VARIANT_ID:QTY?utm_source=…
+```
 
-### Option A — Shopify (Storefront API)
+That is the whole payment integration, and the shape of it is the point: card
+details are typed on Shopify's domain, under Shopify's PCI compliance. There
+is no card number anywhere in this application, so there is nothing here to
+leak and no compliance surface to maintain.
 
-Best fit if you want Shopify to own inventory, tax and fulfilment.
+### The three gates
 
-1. `npm i @shopify/storefront-api-client`. Add `SHOPIFY_STORE_DOMAIN` and
-   `SHOPIFY_STOREFRONT_ACCESS_TOKEN` to `.env.local`.
-2. Write `lib/shopify.ts` exporting `getProducts(): Promise<Product[]>` that
-   queries `products(first: 50)` and maps the response onto the existing
-   `Product` type — Shopify's `handle` is our `slug`, `priceRange.minVariantPrice`
-   is our `price`, media edges are our `images`, and the accordion copy
-   (`howToUse`, `materials`) maps onto metafields.
-3. Make the pages that import `data/products.ts` `async` and await the adapter
-   instead. Components take products as props already, so they do not change.
-4. Store the Shopify variant ID alongside each line in `CartProvider`, swap the
-   reducer's `add`/`setQuantity`/`remove` for `cartLinesAdd` / `cartLinesUpdate`
-   / `cartLinesRemove` mutations, and point the drawer's checkout button at the
-   returned `cart.checkoutUrl`.
+`lib/checkout.ts` will not produce a URL until all three are true, and it
+reports which one is missing rather than returning a bare null.
 
-The simplest possible version — a Shopify **Buy Button** embed on each PDP —
-skips all of that, at the cost of the site's own cart UI.
+| Gate | Where | Today |
+| --- | --- | --- |
+| Somewhere to send people | `NEXT_PUBLIC_SHOPIFY_DOMAIN` | unset |
+| A method that can take money | `data/payments.ts` → `enabled` | all false |
+| Every configuration mapped | `data/variants.ts` | 65/65 |
 
-### Option B — Stripe Checkout
+While any gate is open, `/checkout` renders a dashed **Store setup** panel
+listing exactly what is outstanding. It is rendered only while checkout cannot
+take money, so it removes itself — there is no flag to remember to switch off.
 
-Better if the catalogue stays small and you do not want a second CMS.
+**Gate 1** is one env var. Note that setting it *before* payments are
+activated is the one genuinely bad move available here: Shopify will happily
+render a checkout that cannot complete, and a customer who gets that far and
+fails does not come back. Gate 2 is what stops that, so leave both until
+Shopify Payments is live.
 
-1. `npm i stripe`. Add `STRIPE_SECRET_KEY` to `.env.local`.
-2. Create products/prices in Stripe and record each `price_...` id on the
-   product (a `stripePriceId` field on `Product`).
-3. Add `app/api/checkout/route.ts` that reads the cart lines from the request
-   body, re-derives quantities and price ids **server-side from your own
-   catalogue** (never trust prices sent by the client), creates a Checkout
-   Session, and returns its URL.
-4. Point the drawer's checkout button at that route and redirect to the session
-   URL.
+**Gate 2 is a factual claim, not a config toggle.** Under section 18 and
+section 29(1)(m) of the Australian Consumer Law, showing a payment mark for a
+method that cannot be used is a misleading representation about the
+availability of a service — made at the exact moment someone decides whether
+to buy. Set `enabled: true` the day the method works at checkout, not before.
 
-Either way, remove the `disabled` attribute and the "coming soon" label in
-`components/CartDrawer.tsx`.
+**Gate 3** is a map from a slug plus a selection onto the numeric Shopify
+variant ID. Shopify creates one variant per option combination, so the seven
+products are 65 variants. The IDs are static rather than fetched because the
+URL is built in the browser at the moment of the click, and a network round
+trip there is a spinner between intent and payment. The IDs are stable —
+Shopify keeps them through price, title, inventory and image changes.
+
+Re-sync `data/variants.ts` when the catalogue's *shape* changes: a new colour,
+a new bundle, a product deleted and recreated. `variantCoverage()` enumerates
+every combination the site can produce and checks it against the map; the
+result is the third line of the setup panel. A gap stops that one line being
+sold — `buildCheckoutUrl` refuses the whole handoff rather than silently
+dropping the item, because billing someone for four things and shipping three
+is the worst failure available.
+
+### The page
+
+`/checkout` is a review step, not a payment form. It shows the order, the
+total **including** Australian shipping, the terms being agreed to, and who
+handles the card — then offers the button. It is `noindex` and left out of the
+sitemap.
+
+Three things on it are deliberate:
+
+- **The total includes shipping.** "Calculated at checkout" is the most
+  reliable way to lose an order at the last step, and section 48 of the
+  Australian Consumer Law wants the single total price where one can be
+  stated. For Australian delivery it can be — the rule is two numbers in
+  `data/site.ts`. For international it genuinely cannot, so the label changes
+  to "Goods total" rather than the number pretending.
+- **Acceptance is a tick box** ("clickwrap"), adjacent to the button, starting
+  unticked. Terms merely linked in a footer ("browsewrap") are far weaker in
+  Australian courts, because nothing shows the buyer ever saw them.
+- **The handover is explained before it happens.** "What happens next" says
+  the address bar is about to change and why. A customer who is not expecting
+  that reads it as having been redirected somewhere they did not choose.
+
+### If you move off Shopify
+
+Keep `CartProvider`'s context as the UI contract — `lines`, `count`,
+`subtotal`, `add`, `setQuantity`, `remove` — and replace `lib/checkout.ts`.
+For Stripe: create prices, record each `price_…` id the way `data/variants.ts`
+records variant ids, and add a route that re-derives quantities and prices
+**server-side from this catalogue** (never trust prices sent by the client)
+before creating a Checkout Session.
 
 ### The contact form
 
@@ -250,14 +293,24 @@ app/
   page.tsx              home
   shop/                 grid with filter + sort
   products/[slug]/      PDP — prerendered per product, Product JSON-LD
-  about/ sourcing/ contact/ faq/
+  checkout/             order review + the payment handoff (noindex)
+  about/ sourcing/ contact/ faq/ accessibility/
+  shipping/ returns/ privacy/ terms/   rendered from data/legal.ts
+  api/contact/          Resend-backed contact form
   sitemap.ts robots.ts icon.svg not-found.tsx
 components/
   Navbar Hero ProductCard ProductSpotlight EditorialSection
   Footer Accordion ProductGallery AddToCartForm ProductOptions
   ShopGrid ContactForm CartProvider CartDrawer Reveal SectionHeading
-data/       products.ts, site.ts
-lib/        format.ts — price formatting, cn(), contrast helper
+  CheckoutReview PaymentMethods FreeShippingMeter CartCrossSell
+  DeliveryEstimate TrustRow StickyBuyBar ProductComparison Reviews
+data/       products.ts, site.ts, legal.ts, payments.ts, variants.ts, reviews.ts
+lib/        format.ts   price formatting, cn(), contrast helper
+            checkout.ts the handoff + variant coverage
+            order.ts    shipping and totals
+            delivery.ts estimated arrival window
+            attribution.ts first-touch UTMs, forwarded at handoff
+            mail.ts     Resend wrapper
 scripts/    generate-placeholders.mjs — delete once real photos land
 ```
 
