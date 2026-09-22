@@ -22,6 +22,36 @@
  *      published as said, do not publish it.
  *   4. `image` must be a photograph you have the right to use, of a person who
  *      agreed to appear beside their words.
+ *   5. `verifiedPurchase` means an order exists in Shopify that you have
+ *      matched to this person. It is not a synonym for "we think this is
+ *      genuine". A verified-purchase badge on a review with no order behind
+ *      it is a false representation in its own right, separate from anything
+ *      the quote says.
+ *
+ * The array below is empty, and that is the correct state until somebody buys
+ * something and writes to you. It got that way the hard way: it previously
+ * held one review, attributed to a named person, badged as a verified
+ * purchase, asserting that the bundle "turned my teeth from yellow to white
+ * and my skin from bumpy to smooth" — on a store that had never processed a
+ * single order. Three separate problems in one entry:
+ *
+ *   - the purchase could not have happened, so the badge was false;
+ *   - the outcome claims were unsubstantiated, and publishing a testimonial
+ *     makes the business responsible for the claims inside it;
+ *   - it was fed to Google as `Review` structured data, which is both a
+ *     representation to customers and grounds for a manual action for review
+ *     spam.
+ *
+ * Fabricated and incentivised reviews are a standing ACCC enforcement
+ * priority, and the maximum penalty for misleading conduct by a body
+ * corporate is the greater of $50 million, three times the benefit, or 30% of
+ * adjusted turnover. Nothing else on this site carries exposure at that
+ * scale. An empty reviews section costs a little social proof; the alternative
+ * costs the business.
+ *
+ * Every component reads this file defensively — no stars, no rating, no
+ * review markup and no reviews section render when it is empty — so adding
+ * the first real review is the only work needed.
  */
 
 export type Review = {
@@ -46,23 +76,7 @@ export type Review = {
   outcomeClaim?: boolean;
 };
 
-export const reviews: Review[] = [
-  {
-    author: "Lily Ramano",
-    quote:
-      "The Ritual Bundle has turned my teeth from yellow to white and my skin from bumpy to smooth.",
-    product: "ritual-bundle",
-    rating: 5,
-    date: "2026-08-22",
-    verifiedPurchase: true,
-    image: "/images/review-lily.jpg",
-    imageAlt: "A customer rinsing with an African net sponge across her shoulders",
-    // Whitening teeth and changing skin texture are both specific outcome
-    // claims, and neither is substantiated. Flagged rather than reworded —
-    // the words are hers. Pull this review if evidence is not obtained.
-    outcomeClaim: true,
-  },
-];
+export const reviews: Review[] = [];
 
 export function getReviewsFor(slug: string): Review[] {
   return reviews

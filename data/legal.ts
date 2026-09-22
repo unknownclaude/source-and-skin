@@ -340,6 +340,15 @@ export const privacy: LegalDocument = {
       ],
     },
     {
+      heading: "Children",
+      body: [
+        "This store sells body sponges and chewing sticks to adults. It is not directed at children, we do not advertise it to them, and nothing about it is designed to appeal to them in the way that word is used in privacy law.",
+        "We do not ask anyone's age, because asking would mean collecting a date of birth from every adult in order to identify a child who should not be here anyway — which collects more personal information, not less. APP 3 says we should only collect what we reasonably need, and an age gate on a sponge fails that test.",
+        "If you believe a child has given us personal information, write to us and we will delete it. We will not ask you to prove anything first.",
+        "The Office of the Australian Information Commissioner is developing a Children's Online Privacy Code under the Privacy and Other Legislation Amendment Act 2024. If it applies to a business this size when it takes effect, this section will be rewritten to say how rather than quietly left as it is.",
+      ],
+    },
+    {
       heading: "How we keep it, and for how long",
       body: [
         "We keep personal information only as long as we need it. Order records are held for seven years because tax law requires it. Correspondence is kept while it is useful to answer follow-up questions and deleted after that.",
@@ -465,7 +474,15 @@ export const terms: LegalDocument = {
     {
       heading: "Using this site",
       body: [
-        "The text, photographs and design on this site belong to us. You are welcome to link to it, quote it with attribution, and share it. You may not reproduce it commercially or present it as your own.",
+        "The text and design on this site are ours. You are welcome to link to it, quote it with attribution, and share it. You may not reproduce it commercially or present it as your own.",
+      ],
+    },
+    {
+      heading: "If we have used something of yours",
+      body: [
+        `If a photograph, illustration or piece of writing on this site is yours and we are using it without permission, write to ${businessDetails.email} with a link to the page it is on and something that shows the work is yours. We will take it down while we look, not after.`,
+        "We will not ask you to file anything formal first, and we will not argue about it before removing it. If we were wrong we would rather be quickly wrong than slowly right.",
+        "This is a direct route to a person, not a legal process. It exists because the alternative — a rights holder's first contact being a letter of demand — is worse for both of us.",
       ],
     },
     {
