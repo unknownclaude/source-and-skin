@@ -172,7 +172,7 @@ export const shipping: LegalDocument = {
     {
       heading: "Cost",
       body: [
-        `Standard shipping is free on Australian orders over $${shippingTerms.freeThreshold}. Below that it is a flat $${shippingTerms.flatRate}. Express shipping and international rates are calculated at checkout against your address, and shown in full before you pay.`,
+        `Standard shipping is free on Australian orders over $${shippingTerms.freeThreshold}. Below that it is a flat $${shippingTerms.flatRate}. Anywhere outside Australia is a flat $${shippingTerms.internationalFlatRate}, wherever you are. Express shipping within Australia is offered at checkout and priced there.`,
         gstStatement,
         "International orders may attract customs duties, import taxes or handling fees charged by the destination country. Those are set by that country, are not collected by us, and are the recipient's responsibility.",
       ],

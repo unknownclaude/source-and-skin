@@ -16,9 +16,10 @@ import { shippingTerms } from "@/data/site";
  *   - **Australian delivery.** Free at or above the threshold, flat rate
  *     below it. This is exact, not an estimate, and Shopify is configured to
  *     charge the same two numbers.
- *   - **Everywhere else.** Genuinely unknown until an address exists, because
- *     it depends on the country. Shown as "calculated at checkout" rather
- *     than guessed at — a wrong total is worse than an honest gap.
+ *   - **Everywhere else.** A flat rate to every destination, which is how the
+ *     store is configured, so this is exact too. Import duties are not in it
+ *     and cannot be: they are levied by the destination country, not charged
+ *     by us, and the checkout page says so beside the figure.
  *
  * `shippingTerms` is the same source the shipping page, the cart meter, the
  * product copy and the FAQ read from, so these figures cannot drift apart from
@@ -27,12 +28,12 @@ import { shippingTerms } from "@/data/site";
 
 export type OrderTotals = {
   subtotal: number;
-  /** AUD, or null when it depends on a destination we do not know yet. */
-  shipping: number | null;
+  /** AUD. */
+  shipping: number;
   /** True when this order has crossed the free-shipping threshold. */
   freeShipping: boolean;
-  /** Subtotal plus shipping, or null while shipping is unknown. */
-  total: number | null;
+  /** What the customer pays us. */
+  total: number;
   /** How far off the free-shipping threshold this order is. 0 once qualified. */
   remainingForFreeShipping: number;
 };
@@ -43,11 +44,15 @@ export function orderTotals(subtotal: number, destination: Destination = "austra
   const remainingForFreeShipping = Math.max(0, shippingTerms.freeThreshold - subtotal);
 
   if (destination !== "australia") {
+    // One flat rate everywhere, matching both international zones in Shopify.
+    // The free-shipping threshold is an Australian offer and is not extended
+    // here, which is why `freeShipping` stays false however large the order.
+    const shipping = shippingTerms.internationalFlatRate;
     return {
       subtotal,
-      shipping: null,
+      shipping,
       freeShipping: false,
-      total: null,
+      total: subtotal + shipping,
       remainingForFreeShipping,
     };
   }

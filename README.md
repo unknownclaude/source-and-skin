@@ -28,6 +28,7 @@ turn each piece on.
 
 | Variable | Turns on |
 | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | The canonical domain — see [Going live](#going-live) |
 | `RESEND_API_KEY` | Sending from the contact form |
 | `CONTACT_FROM_EMAIL` | The verified sender address those emails come from |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Analytics (`components/Analytics.tsx`) |
@@ -180,6 +181,50 @@ Encoding brief is in `public/videos/README.md`. The video is progressive
 enhancement — a missing file, blocked autoplay, or `prefers-reduced-motion`
 all fall back to the poster, which is why the poster should be a frame you are
 happy to ship on its own.
+
+---
+
+## Going live
+
+The site is static, so anything that serves a Next.js build will do. These are
+the steps in the order that avoids the two mistakes that are annoying to undo.
+
+**1. Deploy.** Connect the repo to Vercel (or Netlify, or Cloudflare Pages) and
+point it at this branch. No build configuration is needed — `npm run build` and
+the defaults are correct. You get a `*.vercel.app` URL immediately.
+
+**2. Set the environment.** At minimum `NEXT_PUBLIC_SITE_URL`, once the real
+domain exists. Everything else is optional and the site says so on the page
+where it matters. See [Environment](#environment).
+
+**3. Attach the domain.** Add it in the host's dashboard and follow its DNS
+instructions at the registrar. Then set `NEXT_PUBLIC_SITE_URL` to it and
+redeploy, so canonical links, the sitemap and the JSON-LD stop pointing
+somewhere else.
+
+**4. Turn payments on last.** See [Payments and checkout](#payments-and-checkout).
+Until Shopify Payments is activated, `NEXT_PUBLIC_SHOPIFY_DOMAIN` should stay
+unset — Shopify will happily render a checkout that cannot complete, and the
+customer who finds that out is not coming back. The site is honest about it
+in the meantime, which is why deploying before payments work is fine.
+
+**Preview deployments are not indexed.** `isIndexable` in `data/site.ts` is
+false whenever `VERCEL_ENV` is set to anything but `production`, and both
+`robots.txt` and the page-level robots metadata honour it. Without that, a
+preview URL competes with the real site for its own search results. On a host
+that is not Vercel the variable is absent and the deployment is treated as
+production, so exclude a self-hosted staging environment some other way.
+
+**Before you point the domain at it**, the things worth doing once:
+
+- `data/site.ts` — check the contact email is one you read.
+- `data/legal.ts` — `businessDetails` still has `abn`, `address` and `phone`
+  as `null`, and the policy pages render around that honestly. An ABN becomes
+  compulsory at the point you register for GST, which is compulsory at
+  $75,000 turnover.
+- Shopify — a custom checkout domain, so the handoff does not visibly change
+  company name mid-purchase.
+- The five generated placeholder graphics on About and Sourcing.
 
 ---
 

@@ -6,7 +6,7 @@ import Footer from "@/components/Footer";
 import { LiveCatalogueProvider } from "@/components/LiveCatalogueProvider";
 import Navbar from "@/components/Navbar";
 import { CartProvider } from "@/components/CartProvider";
-import { site } from "@/data/site";
+import { isIndexable, site } from "@/data/site";
 import { fetchLiveCatalogue } from "@/lib/shopify";
 
 import "./globals.css";
@@ -67,7 +67,9 @@ export const metadata: Metadata = {
     description: site.description,
     images: ["/images/hero-poster.jpg"],
   },
-  robots: { index: true, follow: true },
+  // robots.txt asks crawlers not to fetch; this tells them not to index
+  // something they reached by a link anyway. A preview needs both.
+  robots: { index: isIndexable, follow: isIndexable },
 };
 
 /**

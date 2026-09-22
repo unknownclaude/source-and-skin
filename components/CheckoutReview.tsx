@@ -227,38 +227,41 @@ export default function CheckoutReview({ coverage }: { coverage: VariantCoverage
               <div className="flex items-baseline justify-between">
                 <dt className="text-charcoal/65">Shipping</dt>
                 <dd className="tabular-nums">
-                  {totals.shipping === null
-                    ? "Calculated at checkout"
-                    : totals.freeShipping
-                      ? "Free"
-                      : formatPrice(totals.shipping)}
+                  {totals.freeShipping ? "Free" : formatPrice(totals.shipping)}
                 </dd>
               </div>
             </dl>
 
             {/* "Total" is a word with a legal meaning on a price: section 48
                 of the Australian Consumer Law wants the single figure someone
-                will actually pay. For an Australian order that is exactly what
-                this is. For an international one it is not — the shipping is
-                genuinely unknown until there is an address — so the label
-                changes rather than the number pretending. */}
+                will actually pay, and this is it — shipping included, for both
+                destinations, because the store charges one flat rate outside
+                Australia rather than quoting per address. The only thing not
+                in it is import duty, which is levied by the destination
+                country rather than charged by us, and which is called out
+                directly underneath. */}
             <div className="mt-5 flex items-baseline justify-between border-t border-charcoal/12 pt-5">
               <span className="text-[0.75rem] uppercase tracking-[0.18em] text-charcoal/60">
-                {totals.total === null ? "Goods total" : "Total"}
+                Total
               </span>
               <span className="font-serif text-3xl tabular-nums">
-                {totals.total === null ? formatPrice(totals.subtotal) : formatPrice(totals.total)}
+                {formatPrice(totals.total)}
               </span>
             </div>
 
             <p className="mt-2.5 text-xs leading-relaxed text-charcoal/55">
-              {totals.total === null
-                ? `Plus international shipping, quoted in full on the next screen before you pay. ${gstStatement}`
-                : gstStatement}
-              {totals.shipping !== null && !totals.freeShipping && (
+              {gstStatement}
+              {destination === "australia" && !totals.freeShipping && (
                 <>
                   {" "}
                   {formatPrice(totals.remainingForFreeShipping)} more in goods and shipping is free.
+                </>
+              )}
+              {destination !== "australia" && (
+                <>
+                  {" "}
+                  Your country may charge import duty or GST on arrival. That is set and collected
+                  by them, not by us, and is not included above.
                 </>
               )}
             </p>
@@ -316,9 +319,7 @@ export default function CheckoutReview({ coverage }: { coverage: VariantCoverage
                     : "bg-charcoal/25 text-cream"
                 }`}
               >
-                {totals.total === null
-                  ? "Pay securely"
-                  : `Pay securely — ${formatPrice(totals.total)}`}
+                Pay securely — {formatPrice(totals.total)}
               </a>
             ) : (
               <button
