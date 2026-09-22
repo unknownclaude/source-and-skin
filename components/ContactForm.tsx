@@ -183,7 +183,7 @@ export default function ContactForm() {
           them here, while they are typing it in. */}
       <p className="max-w-prose text-xs leading-relaxed text-charcoal/55">
         {site.name} collects your name, email address and message so we can answer you, and for no
-        other purpose. We will not add you to any mailing list from this form, and we will not pass
+        other purpose. We do not run a mailing list and will not add you to one, and we will not pass
         what you write to anyone else. Correspondence is deleted once it is no longer useful. You
         can ask us what we hold about you, or ask us to correct or delete it, at any time — see our{" "}
         <Link href="/privacy" className="link-underline">

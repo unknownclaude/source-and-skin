@@ -16,7 +16,11 @@
  *     wording reproduced in `CONSUMER_GUARANTEES_TEXT`.
  *   - Privacy Act 1988 (Cth) and the Australian Privacy Principles, including
  *     the Notifiable Data Breaches scheme in Part IIIC.
- *   - Spam Act 2003 (Cth) — consent, sender identification, unsubscribe.
+ *   - Spam Act 2003 (Cth) — sender identification. This store runs no
+ *     mailing list and sends no marketing email, so the consent and
+ *     unsubscribe machinery the Act requires does not arise. If a list is
+ *     ever added, all three obligations come back with it and the privacy
+ *     policy has to say so before the first message goes out.
  *   - Electronic Transactions Act 1999 (Cth) and Electronic Transactions Act
  *     2000 (NSW) — when an electronic contract is formed.
  *   - Fair Trading Act 1987 (NSW) — NSW Fair Trading administers the ACL here.
@@ -111,7 +115,7 @@ export const businessDetails = {
   gstThreshold: 75000,
 };
 
-const UPDATED = "19 September 2026";
+const UPDATED = "22 September 2026";
 
 /** Free shipping if delivery runs past this. An express warranty under ACL s 59. */
 export const DELIVERY_PROMISE_DAYS = 30;
@@ -295,7 +299,6 @@ export const privacy: LegalDocument = {
         "Order information — your name, delivery address, email address, and phone number where you give one.",
         "Payment information — handled entirely by our payment provider. Card numbers are entered on their systems, not ours. We never see or store a full card number.",
         "Correspondence — what you write to us, so we can answer it.",
-        "Newsletter subscription — your email address, and only if you asked for it.",
         "Technical information your browser sends with every request, such as your IP address, which our host records in ordinary server logs.",
       ],
     },
@@ -317,16 +320,15 @@ export const privacy: LegalDocument = {
         "Our e-commerce platform, Shopify, which hosts the store and processes orders. Shopify is a Canadian company and stores data in Canada, the United States and the European Union.",
         "Our payment provider, which processes your card payment. Payment processing for Australian merchants generally involves servers in Australia and the United States.",
         "Our shipping carriers, who receive your name, delivery address and phone number in order to deliver the parcel. For Australian orders that is a domestic carrier; for international orders it is also the carrier in the destination country.",
-        "Our email provider, if you are on the newsletter list, which may store subscriber addresses in the United States.",
+        "Our email provider, which carries messages you send us through the contact form and may process them in the United States.",
         "Professional advisers, or a government agency or court, where the law requires us to disclose something. We will tell you if that happens unless we are prohibited from doing so.",
       ],
     },
     {
-      heading: "Marketing email",
+      heading: "We do not send marketing email",
       body: [
-        "We send marketing email only to people who have given us their address for that purpose, and we ask for that consent separately from any purchase — subscribing is never a condition of buying, and buying does not subscribe you.",
-        `Every message identifies ${businessDetails.legalName} as the sender, gives a working way to contact us, and carries an unsubscribe link. We action unsubscribe requests within five working days, which is the limit the Spam Act 2003 (Cth) sets, and usually within one.`,
-        "Transactional email — an order confirmation, a dispatch notice, a reply to your question — is not marketing and is sent whether or not you are on the list. You cannot unsubscribe from being told your parcel has shipped.",
+        "There is no mailing list. We do not run one, you cannot join one, and buying from us does not sign you up to anything. If that changes we will say so on this page before a single message is sent, and joining will be a deliberate act rather than a side effect of ordering.",
+        "The only email we send is about your own order or your own question — an order confirmation, a dispatch notice, a reply to something you wrote to us. That is not marketing, and it is the reason we ask for your address at checkout.",
       ],
     },
     {
@@ -340,7 +342,7 @@ export const privacy: LegalDocument = {
     {
       heading: "How we keep it, and for how long",
       body: [
-        "We keep personal information only as long as we need it. Order records are held for seven years because tax law requires it. Correspondence is kept while it is useful to answer follow-up questions and deleted after that. A newsletter address is kept until you unsubscribe.",
+        "We keep personal information only as long as we need it. Order records are held for seven years because tax law requires it. Correspondence is kept while it is useful to answer follow-up questions and deleted after that.",
         "We take reasonable steps to protect what we hold — the store runs over HTTPS, access is limited to the people who need it, and we do not keep card numbers at all, which is the single most effective security measure available to a business this size.",
       ],
     },

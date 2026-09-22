@@ -2,7 +2,6 @@ import Link from "next/link";
 
 import EditorialSection from "@/components/EditorialSection";
 import Hero from "@/components/Hero";
-import NewsletterForm from "@/components/NewsletterForm";
 import ProductCard from "@/components/ProductCard";
 import ProductSpotlight from "@/components/ProductSpotlight";
 import Reveal from "@/components/Reveal";
@@ -161,25 +160,6 @@ export default function HomePage() {
               </Link>
             </Reveal>
           </div>
-        </div>
-      </section>
-
-      {/* ---- Newsletter ---- */}
-      <section className="edge py-section" aria-labelledby="newsletter-heading">
-        <div className="grid gap-10 md:grid-cols-2 md:items-end md:gap-20">
-          <Reveal>
-            <p className="eyebrow">Stay close</p>
-            <h2 id="newsletter-heading" className="mt-5 font-serif text-display-md">
-              Join the list.
-            </h2>
-            <p className="mt-6 max-w-md text-base leading-relaxed text-charcoal/65">
-              Early access to small-batch drops, restock notices before they go public, and short
-              notes on the places these things come from. No more than twice a month.
-            </p>
-          </Reveal>
-          <Reveal delay={0.12} className="md:justify-self-end md:w-full">
-            <NewsletterForm />
-          </Reveal>
         </div>
       </section>
     </>

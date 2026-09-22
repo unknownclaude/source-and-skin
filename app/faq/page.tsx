@@ -151,7 +151,7 @@ const groups = [
       {
         title: "Do you restock sold-out colours?",
         content:
-          "Yes, though not always quickly — we buy in small runs. Join the list and we send restock notices before they go public.",
+          `Yes, though not always quickly — we buy in small runs. We do not run a mailing list, so write to ${site.email} and we will tell you when the colour you want is back.`,
       },
     ],
   },

@@ -28,12 +28,12 @@ turn each piece on.
 
 | Variable | Turns on |
 | --- | --- |
-| `RESEND_API_KEY` | Sending from the contact and newsletter forms |
+| `RESEND_API_KEY` | Sending from the contact form |
 | `CONTACT_FROM_EMAIL` | The verified sender address those emails come from |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Analytics (`components/Analytics.tsx`) |
 | `NEXT_PUBLIC_SHOPIFY_DOMAIN` | The checkout handoff (`lib/checkout.ts`) |
 
-Without `RESEND_API_KEY` the form routes return 503 and the UI shows the
+Without `RESEND_API_KEY` the contact route returns 503 and the UI shows the
 business email address. That is deliberate: a contact form that reports
 success while dropping the message is the one failure mode worth engineering
 against, because the customer stops trying.
@@ -228,17 +228,17 @@ Better if the catalogue stays small and you do not want a second CMS.
 Either way, remove the `disabled` attribute and the "coming soon" label in
 `components/CartDrawer.tsx`.
 
-### The two forms
+### The contact form
 
-`NewsletterForm` and `ContactForm` both validate properly and then resolve
-against a stub. Each has one clearly marked function to replace:
+`ContactForm` posts to `/api/contact`, which validates server-side and sends
+through Resend. Unconfigured it returns 503 and the form shows the business
+email address rather than a success screen — see `lib/mail.ts`.
 
-- `fakeSubscribe()` in `components/NewsletterForm.tsx` → POST to Klaviyo,
-  Mailchimp, ConvertKit, or your own `/api/subscribe`.
-- The `setTimeout` in `ContactForm`'s `onSubmit` → POST to `/api/contact`,
-  Formspree, or Resend.
-
-The pending / success / error states around them already work.
+There is no newsletter. The store deliberately runs no mailing list, and the
+privacy policy says so. Adding one is not just a form: the Spam Act 2003 (Cth)
+requires consent you can prove, sender identification on every message, and an
+unsubscribe honoured within five working days — and the privacy policy has to
+be updated before the first message goes out.
 
 ---
 
@@ -254,7 +254,7 @@ app/
   sitemap.ts robots.ts icon.svg not-found.tsx
 components/
   Navbar Hero ProductCard ProductSpotlight EditorialSection
-  NewsletterForm Footer Accordion ProductGallery AddToCartForm
+  Footer Accordion ProductGallery AddToCartForm ProductOptions
   ShopGrid ContactForm CartProvider CartDrawer Reveal SectionHeading
 data/       products.ts, site.ts
 lib/        format.ts — price formatting, cn(), contrast helper
