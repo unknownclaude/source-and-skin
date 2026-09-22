@@ -10,6 +10,8 @@ import {
   type Product,
 } from "@/data/products";
 import { formatPrice } from "@/lib/format";
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
+import { availabilityFor, priceFor } from "@/lib/catalogue";
 
 /**
  * Mobile-only buy bar that appears once the real one scrolls away.
@@ -42,6 +44,7 @@ export default function StickyBuyBar({
   onAdd: () => void;
   watchRef: React.RefObject<HTMLElement>;
 }) {
+  const live = useLiveCatalogue();
   const [visible, setVisible] = useState(false);
   const barRef = useRef<HTMLDivElement>(null);
 
@@ -62,7 +65,8 @@ export default function StickyBuyBar({
   }, [watchRef]);
 
   const complete = isSelectionComplete(product, selection);
-  const price = unitPrice(product, selection);
+  const price = priceFor(product, selection, live);
+  const soldOut = complete && availabilityFor(product, selection, live) === "sold-out";
 
   return (
     <div
@@ -90,13 +94,19 @@ export default function StickyBuyBar({
               watchRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
               return;
             }
+            if (soldOut) return;
             onAdd();
           }}
+          disabled={soldOut}
           className={`shrink-0 rounded-full px-6 py-3.5 text-[0.7rem] uppercase tracking-[0.18em] transition-colors ${
-            complete ? "bg-charcoal text-cream" : "bg-charcoal/30 text-cream"
+            soldOut
+              ? "cursor-not-allowed bg-charcoal/15 text-charcoal/50"
+              : complete
+                ? "bg-charcoal text-cream"
+                : "bg-charcoal/30 text-cream"
           }`}
         >
-          {complete ? "Add to bag" : "Choose options"}
+          {soldOut ? "Sold out" : complete ? "Add to bag" : "Choose options"}
         </button>
       </div>
     </div>

@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useCart } from "@/components/CartProvider";
 import { products, type Product } from "@/data/products";
 import { formatPrice } from "@/lib/format";
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
+import { fromPriceFor } from "@/lib/catalogue";
 
 /**
  * One suggestion in the bag, addable in a single click.
@@ -36,6 +38,7 @@ function pickSuggestion(inBag: Set<string>): Product | null {
 
 export default function CartCrossSell() {
   const { lines, add } = useCart();
+  const live = useLiveCatalogue();
 
   const inBag = new Set(lines.map((line) => line.slug));
   const suggestion = pickSuggestion(inBag);
@@ -59,7 +62,7 @@ export default function CartCrossSell() {
 
         <div className="min-w-0 flex-1">
           <p className="font-serif text-sm leading-snug">{suggestion.name}</p>
-          <p className="mt-0.5 text-xs text-charcoal/55">{formatPrice(suggestion.price)}</p>
+          <p className="mt-0.5 text-xs text-charcoal/55">{formatPrice(fromPriceFor(suggestion, live))}</p>
         </div>
 
         <button

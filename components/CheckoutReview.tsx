@@ -6,10 +6,12 @@ import { useState } from "react";
 
 import { useCart } from "@/components/CartProvider";
 import DeliveryEstimate from "@/components/DeliveryEstimate";
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
 import PaymentMethods from "@/components/PaymentMethods";
 import { CHANGE_OF_MIND_DAYS, DELIVERY_PROMISE_DAYS, gstStatement } from "@/data/legal";
 import { anyPaymentMethodEnabled, paymentProvider } from "@/data/payments";
 import { shippingTerms, site } from "@/data/site";
+import { availabilityFor } from "@/lib/catalogue";
 import { checkoutState, type VariantCoverage } from "@/lib/checkout";
 import { formatPrice } from "@/lib/format";
 import { orderTotals, type Destination } from "@/lib/order";
@@ -31,13 +33,25 @@ import { orderTotals, type Destination } from "@/lib/order";
  */
 export default function CheckoutReview({ coverage }: { coverage: VariantCoverage }) {
   const { lines, subtotal, hydrated, setQuantity, remove } = useCart();
+  const stock = useLiveCatalogue();
   const [destination, setDestination] = useState<Destination>("australia");
   const [accepted, setAccepted] = useState(false);
   const [blocked, setBlocked] = useState(false);
 
   const state = checkoutState(lines);
   const totals = orderTotals(subtotal, destination);
-  const live = state.status === "ready";
+
+  // A bag can sit in localStorage for weeks. Something in it selling out
+  // between then and now is the one failure this page can still catch, and
+  // catching it here costs a click where catching it after payment costs a
+  // refund, an apology and the customer.
+  const soldOut = new Set(
+    lines
+      .filter((line) => availabilityFor(line.product, line.selection, stock) === "sold-out")
+      .map((line) => line.key)
+  );
+
+  const live = state.status === "ready" && soldOut.size === 0;
 
   // Held back until localStorage has been read, so nobody is told their bag is
   // empty for one frame while standing at the payment step.
@@ -103,6 +117,12 @@ export default function CheckoutReview({ coverage }: { coverage: VariantCoverage
                   <p className="mt-1.5 text-sm text-charcoal/55">
                     {formatPrice(line.unitPrice)} each
                   </p>
+                  {soldOut.has(line.key) && (
+                    <p role="alert" className="mt-2 text-[0.8rem] leading-relaxed text-clay">
+                      Sold out since you added it. Remove it to carry on, or email us — we will
+                      tell you when it is back.
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-5">
@@ -307,7 +327,11 @@ export default function CheckoutReview({ coverage }: { coverage: VariantCoverage
                 aria-describedby="checkout-note"
                 className="mt-6 w-full cursor-not-allowed rounded-full bg-charcoal py-4 text-[0.72rem] uppercase tracking-[0.18em] text-cream opacity-40"
               >
-                {state.status === "unmapped" ? "One item cannot be ordered" : "Payments are not live yet"}
+                {soldOut.size > 0
+                  ? "Remove the sold-out item to continue"
+                  : state.status === "unmapped"
+                    ? "One item cannot be ordered"
+                    : "Payments are not live yet"}
               </button>
             )}
 
@@ -319,7 +343,11 @@ export default function CheckoutReview({ coverage }: { coverage: VariantCoverage
 
             <p id="checkout-note" className="mt-3 text-center text-[0.72rem] leading-relaxed text-charcoal/50">
               {state.status === "ready" &&
+                soldOut.size === 0 &&
                 `You will be taken to ${paymentProvider.name}'s secure checkout to pay.`}
+              {state.status === "ready" &&
+                soldOut.size > 0 &&
+                "One of these is no longer in stock. Everything else in the bag is fine."}
               {(state.status === "not-configured" || state.status === "no-payment-methods") &&
                 "Nothing on this site can take a payment yet. Your bag is saved in this browser."}
               {state.status === "unmapped" &&
@@ -470,10 +498,11 @@ export default function CheckoutReview({ coverage }: { coverage: VariantCoverage
           aria-labelledby="checkout-setup"
         >
           <h2 id="checkout-setup" className="font-serif text-lg">
-            Store setup — three things stand between this button and a payment
+            Store setup — what is connected
           </h2>
           <p className="mt-2 text-[0.8rem] leading-relaxed text-charcoal/55">
-            This panel is only rendered while checkout cannot take money. It removes itself.
+            The first three are what stand between this button and a payment. This panel is only
+            rendered while checkout cannot take money, so it removes itself.
           </p>
 
           <ul className="mt-6 space-y-4">
@@ -499,6 +528,14 @@ export default function CheckoutReview({ coverage }: { coverage: VariantCoverage
                   coverage.missing.length === 0
                     ? "Every combination this site can put in a bag has a Shopify variant behind it."
                     : `No variant for: ${coverage.missing.slice(0, 6).join("; ")}${coverage.missing.length > 6 ? `, and ${coverage.missing.length - 6} more` : ""}. Add them in Shopify and record the IDs in data/variants.ts.`,
+              },
+              {
+                done: stock !== null,
+                title: "Live prices and stock",
+                body:
+                  stock !== null
+                    ? `Reading from Shopify. Last checked ${new Date(stock.fetchedAt).toLocaleString("en-AU")}.`
+                    : "Not connected — prices and availability come from data/products.ts. Create a Storefront API token in Shopify admin and set SHOPIFY_STOREFRONT_TOKEN. Checkout works without this; what it buys you is that a sold-out colour stops being sellable here.",
               },
             ].map((item) => (
               <li key={item.title} className="flex items-start gap-3.5">

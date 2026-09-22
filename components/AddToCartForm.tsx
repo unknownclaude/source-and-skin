@@ -3,14 +3,15 @@
 import { useState } from "react";
 
 import { useCart } from "@/components/CartProvider";
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
 import {
   isSelectionComplete,
   missingOptions,
-  unitPrice,
   type OptionSelection,
   type Product,
 } from "@/data/products";
 import { shippingTerms } from "@/data/site";
+import { availabilityFor, priceFor } from "@/lib/catalogue";
 import { formatPrice } from "@/lib/format";
 
 const MAX_QUANTITY = 10;
@@ -35,11 +36,17 @@ export default function AddToCartForm({
   onMissing?: (optionIds: string[]) => void;
 }) {
   const { add } = useCart();
+  const live = useLiveCatalogue();
   const [quantity, setQuantity] = useState(1);
   const [blocked, setBlocked] = useState<string[]>([]);
 
   const complete = isSelectionComplete(product, selection);
-  const price = unitPrice(product, selection);
+  const price = priceFor(product, selection, live);
+  // Only ever true when Shopify has actually reported this exact variant as
+  // unavailable. An unreachable store reports "unknown" and the button stays
+  // live — better to let an order through and refund it than to refuse a sale
+  // because a network call failed.
+  const soldOut = complete && availabilityFor(product, selection, live) === "sold-out";
 
   return (
     <form
@@ -53,6 +60,8 @@ export default function AddToCartForm({
           onMissing?.(outstanding.map((option) => option.id));
           return;
         }
+
+        if (soldOut) return;
 
         setBlocked([]);
         add(product.slug, quantity, selection);
@@ -90,16 +99,28 @@ export default function AddToCartForm({
 
         <button
           type="submit"
-          aria-describedby={blocked.length ? "add-to-bag-blocked" : undefined}
+          disabled={soldOut}
+          aria-describedby={
+            soldOut ? "add-to-bag-soldout" : blocked.length ? "add-to-bag-blocked" : undefined
+          }
           className={`flex-1 rounded-full px-8 py-4 text-[0.72rem] uppercase tracking-[0.2em] transition-all duration-500 ease-editorial ${
-            complete
-              ? "bg-charcoal text-cream hover:-translate-y-0.5"
-              : "bg-charcoal/25 text-cream"
+            soldOut
+              ? "cursor-not-allowed bg-charcoal/20 text-charcoal/50"
+              : complete
+                ? "bg-charcoal text-cream hover:-translate-y-0.5"
+                : "bg-charcoal/25 text-cream"
           }`}
         >
-          Add to bag — {formatPrice(price * quantity)}
+          {soldOut ? "Sold out" : `Add to bag — ${formatPrice(price * quantity)}`}
         </button>
       </div>
+
+      {soldOut && (
+        <p id="add-to-bag-soldout" role="alert" className="mt-4 text-sm text-clay">
+          That combination has sold out. Choose another colour, or email us and we will tell you
+          when it is back.
+        </p>
+      )}
 
       {blocked.length > 0 && !complete && (
         <p id="add-to-bag-blocked" role="alert" className="mt-4 text-sm text-clay">

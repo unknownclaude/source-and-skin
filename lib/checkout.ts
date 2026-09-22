@@ -1,12 +1,6 @@
 import type { HydratedLine } from "@/components/CartProvider";
 import { anyPaymentMethodEnabled } from "@/data/payments";
-import {
-  describeSelection,
-  missingOptions,
-  products,
-  type OptionSelection,
-  type Product,
-} from "@/data/products";
+import { describeSelection, enumerateSelections, products } from "@/data/products";
 import { findVariantId } from "@/data/variants";
 import { withAttribution } from "@/lib/attribution";
 
@@ -113,33 +107,6 @@ export function checkoutState(lines: HydratedLine[]): CheckoutState {
  * warning rather than a build failure on purpose: a missing variant should
  * stop that one line being sold, not stop the site from deploying.
  * ---------------------------------------------------------------------- */
-
-/** Every valid combination of choices for a product. */
-export function enumerateSelections(product: Product): OptionSelection[] {
-  let frontier: OptionSelection[] = [{}];
-
-  // Each pass fills one outstanding option on every branch, so this terminates
-  // after as many passes as the product has options.
-  for (;;) {
-    const next: OptionSelection[] = [];
-    let expanded = false;
-
-    for (const selection of frontier) {
-      const outstanding = missingOptions(product, selection);
-      if (!outstanding.length) {
-        next.push(selection);
-        continue;
-      }
-      expanded = true;
-      for (const value of outstanding[0].values) {
-        next.push({ ...selection, [outstanding[0].id]: value.value });
-      }
-    }
-
-    frontier = next;
-    if (!expanded) return frontier;
-  }
-}
 
 export type VariantCoverage = {
   /** Combinations the site can produce. */

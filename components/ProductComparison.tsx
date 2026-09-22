@@ -2,7 +2,9 @@ import Link from "next/link";
 
 import Reveal from "@/components/Reveal";
 import { getProduct } from "@/data/products";
+import { fromPriceFor } from "@/lib/catalogue";
 import { formatPrice } from "@/lib/format";
+import { fetchLiveCatalogue } from "@/lib/shopify";
 
 /**
  * What is actually in each box.
@@ -87,7 +89,9 @@ const COLUMNS = [
   { key: "bestFor", label: "Best for" },
 ] as const;
 
-export default function ProductComparison() {
+export default async function ProductComparison() {
+  // Cached by Next, so this is the same read the layout already made.
+  const live = await fetchLiveCatalogue();
   const rows = ROWS.map((row) => ({ ...row, product: getProduct(row.slug) })).filter(
     (row) => row.product
   );
@@ -164,7 +168,7 @@ export default function ProductComparison() {
                   ))}
 
                   <td className="py-4 text-right align-top text-[0.86rem] tabular-nums">
-                    {formatPrice(row.product!.price)}
+                    {formatPrice(fromPriceFor(row.product!, live))}
                   </td>
                 </tr>
               ))}

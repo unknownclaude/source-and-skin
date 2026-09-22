@@ -7,6 +7,8 @@ import { useState } from "react";
 
 import type { Product } from "@/data/products";
 import { formatPrice, readableTextOn } from "@/lib/format";
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
+import { fromPriceFor } from "@/lib/catalogue";
 
 type ProductSpotlightProps = {
   product: Product;
@@ -32,6 +34,7 @@ type ProductSpotlightProps = {
 export default function ProductSpotlight({ product, reversed = false }: ProductSpotlightProps) {
   const [open, setOpen] = useState(false);
   const reduceMotion = useReducedMotion();
+  const live = useLiveCatalogue();
   const textColor = readableTextOn(product.accentColor);
   const isLightText = textColor === "#F5F1EA";
 
@@ -99,7 +102,7 @@ export default function ProductSpotlight({ product, reversed = false }: ProductS
             {product.tagline}
           </p>
 
-          <p className="mt-8 font-serif text-2xl tabular-nums">{formatPrice(product.price)}</p>
+          <p className="mt-8 font-serif text-2xl tabular-nums">{formatPrice(fromPriceFor(product, live))}</p>
 
           <button
             type="button"

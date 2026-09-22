@@ -20,6 +20,8 @@ import StarRating from "@/components/StarRating";
 import { useCart } from "@/components/CartProvider";
 import { getAggregateRating } from "@/data/reviews";
 import { formatPrice } from "@/lib/format";
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
+import { priceFor } from "@/lib/catalogue";
 
 /**
  * The interactive half of a product page.
@@ -35,6 +37,8 @@ import { formatPrice } from "@/lib/format";
  */
 export default function ProductDetail({ product }: { product: Product }) {
   const [selection, setSelection] = useState<OptionSelection>({});
+  // Shopify's price for the exact variant chosen, where the store is reachable.
+  const live = useLiveCatalogue();
   const [missing, setMissing] = useState<string[]>([]);
   const { add } = useCart();
   // The sticky mobile bar appears once this block scrolls off the top.
@@ -49,7 +53,7 @@ export default function ProductDetail({ product }: { product: Product }) {
     return [lead, ...rest];
   }, [product, selection]);
 
-  const price = unitPrice(product, selection);
+  const price = priceFor(product, selection, live);
   const rating = getAggregateRating(product.slug);
 
   return (

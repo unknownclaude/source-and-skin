@@ -32,6 +32,7 @@ turn each piece on.
 | `CONTACT_FROM_EMAIL` | The verified sender address those emails come from |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | Analytics (`components/Analytics.tsx`) |
 | `NEXT_PUBLIC_SHOPIFY_DOMAIN` | The checkout handoff (`lib/checkout.ts`) — see [Payments and checkout](#payments-and-checkout) before setting it |
+| `SHOPIFY_STOREFRONT_TOKEN` | Live prices and stock (`lib/shopify.ts`) — see [The live store connection](#the-live-store-connection) |
 
 Without `RESEND_API_KEY` the contact route returns 503 and the UI shows the
 business email address. That is deliberate: a contact form that reports
@@ -182,6 +183,52 @@ happy to ship on its own.
 
 ---
 
+## The live store connection
+
+The catalogue is split between two systems on purpose.
+
+| | Lives in | Why |
+| --- | --- | --- |
+| Copy, photography, options, benefits | `data/products.ts` | Shopify has no opinion worth having about how a sponge is described, and its product descriptions are not the ones that took a week to write. |
+| Price, availability | Shopify | They change without anybody editing a file, and Shopify is what actually charges the card. |
+
+`lib/shopify.ts` reads the store through the Storefront API; `lib/catalogue.ts`
+merges the result over the static catalogue. Set `SHOPIFY_STOREFRONT_TOKEN`
+(plus `NEXT_PUBLIC_SHOPIFY_DOMAIN`) and the site quotes Shopify's prices, greys
+out sold-out colours, blocks add-to-bag on a gone variant, flags a bag item
+that sold out while it sat in localStorage, and emits `OutOfStock` in the
+product JSON-LD. Leave the token unset and every one of those falls back to
+`data/products.ts` and the site behaves exactly as it did before.
+
+**Getting a token.** Shopify admin → Settings → Apps and sales channels →
+Develop apps → create an app → Storefront API → enable
+`unauthenticated_read_product_listings` → Install → reveal the token. It is
+read server-side only and is deliberately **not** `NEXT_PUBLIC_`, so Next will
+not inline it into the browser bundle.
+
+**It fails soft, on purpose.** No token, no network, a bad response, a slow
+store — each one logs a `[shopify]` warning and returns null, and null means
+"use the static catalogue". A storefront that goes down because its data
+source did is a worse storefront. The fetch is cached with a five-minute
+revalidate, so pages stay static and no visitor ever waits on Shopify.
+
+**Why prices are keyed by variant ID.** The live layer looks variants up by
+the numeric IDs in `data/variants.ts` rather than by matching option names.
+That mapping is already proven correct by the coverage check, and it means the
+two systems never have to agree about what an option is called.
+
+**Sold out is per combination, not per colour.** "Purple" can be gone as a
+handled sponge and still in stock as a plain one, so a swatch is only struck
+through when *every* configuration containing it is unavailable. Greying it
+out under "Sponge style: Regular" would be turning away a sale you can fill.
+
+**Where the two systems must agree on money.** Shipping. The checkout page
+quotes a total with shipping in it, and Shopify charges it. See the warning
+block under `shippingTerms` in `data/site.ts` for the exact Shopify setup that
+matches the published policy.
+
+---
+
 ## Payments and checkout
 
 The bag is local: `components/CartProvider.tsx` holds line items in a reducer
@@ -210,8 +257,10 @@ reports which one is missing rather than returning a bare null.
 | Every configuration mapped | `data/variants.ts` | 65/65 |
 
 While any gate is open, `/checkout` renders a dashed **Store setup** panel
-listing exactly what is outstanding. It is rendered only while checkout cannot
-take money, so it removes itself — there is no flag to remember to switch off.
+listing exactly what is outstanding — those three plus the live-catalogue
+connection, which is not a payment gate but is worth seeing in the same place.
+It is rendered only while checkout cannot take money, so it removes itself —
+there is no flag to remember to switch off.
 
 **Gate 1** is one env var. Note that setting it *before* payments are
 activated is the one genuinely bad move available here: Shopify will happily
@@ -304,8 +353,11 @@ components/
   ShopGrid ContactForm CartProvider CartDrawer Reveal SectionHeading
   CheckoutReview PaymentMethods FreeShippingMeter CartCrossSell
   DeliveryEstimate TrustRow StickyBuyBar ProductComparison Reviews
+  LiveCatalogueProvider  live store data, server → client islands
 data/       products.ts, site.ts, legal.ts, payments.ts, variants.ts, reviews.ts
 lib/        format.ts   price formatting, cn(), contrast helper
+            shopify.ts  Storefront API client (server only)
+            catalogue.ts static catalogue + live price/stock
             checkout.ts the handoff + variant coverage
             order.ts    shipping and totals
             delivery.ts estimated arrival window

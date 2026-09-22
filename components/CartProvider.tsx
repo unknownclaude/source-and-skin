@@ -10,16 +10,17 @@ import {
   useState,
 } from "react";
 
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
 import {
   cartLineKey,
   describeSelection,
   products,
   pruneSelection,
   selectedImage,
-  unitPrice,
   type OptionSelection,
   type Product,
 } from "@/data/products";
+import { priceFor } from "@/lib/catalogue";
 
 /**
  * Local-only cart.
@@ -156,6 +157,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { lines: [] });
   const [isOpen, setIsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  // Prices come from Shopify where it is reachable, because Shopify is what
+  // charges the card. `priceFor` falls back to the static catalogue.
+  const live = useLiveCatalogue();
 
   // Restore on mount only — never during render, so SSR and the first client
   // paint agree and React does not warn about a hydration mismatch.
@@ -212,7 +216,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const hydratedLines = state.lines.flatMap<HydratedLine>((line) => {
       const product = products.find((candidate) => candidate.slug === line.slug);
       if (!product) return [];
-      const each = unitPrice(product, line.selection);
+      const each = priceFor(product, line.selection, live);
       return [
         {
           ...line,
@@ -242,7 +246,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       remove: (key) => dispatch({ type: "remove", key }),
       clear: () => dispatch({ type: "clear" }),
     };
-  }, [state.lines, hydrated, isOpen, openCart, closeCart]);
+  }, [state.lines, live, hydrated, isOpen, openCart, closeCart]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

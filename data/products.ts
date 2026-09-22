@@ -530,6 +530,40 @@ export function describeSelection(product: Product, selection: OptionSelection):
 }
 
 /**
+ * Every valid combination of choices for a product.
+ *
+ * Used to prove that each configuration the site can offer has something
+ * behind it — a Shopify variant to sell, a price to charge. A bundle with a
+ * style and two colour ranges produces eleven; the full ritual produces
+ * thirty.
+ */
+export function enumerateSelections(product: Product): OptionSelection[] {
+  let frontier: OptionSelection[] = [{}];
+
+  // Each pass fills one outstanding option on every branch, so this
+  // terminates after as many passes as the product has options.
+  for (;;) {
+    const next: OptionSelection[] = [];
+    let expanded = false;
+
+    for (const selection of frontier) {
+      const outstanding = missingOptions(product, selection);
+      if (!outstanding.length) {
+        next.push(selection);
+        continue;
+      }
+      expanded = true;
+      for (const value of outstanding[0].values) {
+        next.push({ ...selection, [outstanding[0].id]: value.value });
+      }
+    }
+
+    frontier = next;
+    if (!expanded) return frontier;
+  }
+}
+
+/**
  * Identity of a cart line.
  *
  * Two of the same product in different colours are two lines, not one with a

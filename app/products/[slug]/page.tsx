@@ -9,7 +9,8 @@ import Reviews from "@/components/Reviews";
 import { getProduct, getRelatedProducts, products } from "@/data/products";
 import { getAggregateRating, getReviewsFor } from "@/data/reviews";
 import { site } from "@/data/site";
-import { formatPrice } from "@/lib/format";
+import { fromPriceFor, productAvailability } from "@/lib/catalogue";
+import { fetchLiveCatalogue } from "@/lib/shopify";
 
 type PageProps = { params: { slug: string } };
 
@@ -36,7 +37,7 @@ export function generateMetadata({ params }: PageProps): Metadata {
   };
 }
 
-export default function ProductPage({ params }: PageProps) {
+export default async function ProductPage({ params }: PageProps) {
   const product = getProduct(params.slug);
   if (!product) notFound();
 
@@ -44,6 +45,10 @@ export default function ProductPage({ params }: PageProps) {
   const productReviews = getReviewsFor(product.slug);
 
   const rating = getAggregateRating(product.slug);
+
+  // Cached by Next — the same read the layout already made.
+  const live = await fetchLiveCatalogue();
+  const availability = productAvailability(product, live);
 
   // Product schema so the PDP is eligible for rich results.
   //
@@ -60,9 +65,15 @@ export default function ProductPage({ params }: PageProps) {
     brand: { "@type": "Brand", name: site.name },
     offers: {
       "@type": "Offer",
-      price: product.price.toFixed(2),
+      // Shopify's price where the store is reachable. A structured-data price
+      // that disagrees with the checkout earns a Merchant Centre suspension
+      // as well as being a misleading price representation.
+      price: fromPriceFor(product, live).toFixed(2),
       priceCurrency: "AUD",
-      availability: "https://schema.org/InStock",
+      availability:
+        availability === "sold-out"
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
       url: `${site.domain}/products/${product.slug}`,
     },
     ...(rating && {

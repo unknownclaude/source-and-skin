@@ -7,6 +7,8 @@ import { useState } from "react";
 
 import type { Product } from "@/data/products";
 import { getAggregateRating } from "@/data/reviews";
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
+import { fromPriceFor, productAvailability } from "@/lib/catalogue";
 import { formatPrice } from "@/lib/format";
 import StarRating from "@/components/StarRating";
 
@@ -45,6 +47,8 @@ export default function ProductCard({
   wide = false,
   className,
 }: ProductCardProps) {
+  const live = useLiveCatalogue();
+  const soldOut = productAvailability(product, live) === "sold-out";
   const [active, setActive] = useState(false);
   // Null when nobody has reviewed this yet — the row simply does not render.
   const rating = getAggregateRating(product.slug);
@@ -96,13 +100,22 @@ export default function ProductCard({
               active ? "scale-100 opacity-100" : "scale-[1.04] opacity-0"
             }`}
           />
+
+          {/* Only rendered when Shopify has actually said so. An unreachable
+              store reports "unknown", and the card says nothing rather than
+              claiming stock it has not checked. */}
+          {soldOut && (
+            <p className="absolute left-4 top-4 bg-cream/95 px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.16em] text-charcoal">
+              Sold out
+            </p>
+          )}
         </div>
 
         <div className="flex items-baseline justify-between gap-4 pt-4">
           <h3 className="font-serif text-lg leading-snug">{product.name}</h3>
           <p className="shrink-0 text-sm tabular-nums text-charcoal/70">
             {showFromPrefix && <span className="text-charcoal/45">From </span>}
-            {formatPrice(product.price)}
+            {formatPrice(fromPriceFor(product, live))}
           </p>
         </div>
         {rating && <StarRating rating={rating.average} count={rating.count} className="pt-2" />}

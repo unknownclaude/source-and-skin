@@ -46,6 +46,28 @@ export const shippingTerms = {
   dispatchDays: 2,
 } as const;
 
+/**
+ * ⚠️ Shopify has to agree with the two numbers above.
+ *
+ * The checkout page quotes a total with shipping in it, and Shopify is what
+ * actually charges for the shipping. When they disagree the customer is shown
+ * one price and billed another, which is a misleading price representation
+ * under section 18 of the Australian Consumer Law — not a display bug. They
+ * did disagree once: the site promised $9.95 and free over $45 while Shopify
+ * charged $11.00 and free over $100.
+ *
+ * Changing `flatRate` or `freeThreshold` therefore means changing the Domestic
+ * zone of the General delivery profile in Shopify admin too. It is currently
+ * set up as two rates with complementary conditions, so exactly one is ever
+ * offered:
+ *
+ *   Standard   $9.95   when the order total is $44.99 or less
+ *   Standard   $0.00   when the order total is $45.00 or more
+ *
+ * Express ($15) sits alongside them and is the customer's own upgrade, which
+ * is why the shipping page describes express as calculated at checkout.
+ */
+
 export type NavLink = { href: string; label: string };
 
 export const primaryNav: NavLink[] = [

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLiveCatalogue } from "@/components/LiveCatalogueProvider";
 import {
   getLiveOptions,
   pruneSelection,
@@ -7,6 +8,7 @@ import {
   type Product,
   type ProductOptionValue,
 } from "@/data/products";
+import { optionValueAvailability } from "@/lib/catalogue";
 import { formatPrice } from "@/lib/format";
 
 /**
@@ -35,8 +37,9 @@ export default function ProductOptions({
   onChange: (next: OptionSelection) => void;
   highlight?: string[];
 }) {
-  const live = getLiveOptions(product, selection);
-  if (!live.length) return null;
+  const stock = useLiveCatalogue();
+  const liveOptions = getLiveOptions(product, selection);
+  if (!liveOptions.length) return null;
 
   function choose(optionId: string, value: ProductOptionValue) {
     // Prune after applying, so changing a parent option drops any child
@@ -46,7 +49,7 @@ export default function ProductOptions({
 
   return (
     <div className="mt-10 space-y-8">
-      {live.map((option) => {
+      {liveOptions.map((option) => {
         const chosen = selection[option.id];
         const needsAnswer = highlight.includes(option.id);
         const labelId = `option-${option.id}-label`;
@@ -78,6 +81,13 @@ export default function ProductOptions({
               {option.values.map((value) => {
                 const isChosen = value.value === chosen;
                 const delta = value.priceDelta ?? 0;
+                // Sold out only when every configuration containing this value
+                // is gone. "Purple" can be unavailable as a handled sponge and
+                // still in stock as a plain one, and greying it out under
+                // "Regular" would be turning away a sale we can fill.
+                const soldOut =
+                  optionValueAvailability(product, option, value.value, selection, stock) ===
+                  "sold-out";
 
                 // A swatch is a colour dot; anything else is a worded pill,
                 // because "With handles" cannot be communicated by a colour.
@@ -88,22 +98,37 @@ export default function ProductOptions({
                       type="button"
                       role="radio"
                       aria-checked={isChosen}
+                      aria-disabled={soldOut}
+                      disabled={soldOut}
                       onClick={() => choose(option.id, value)}
-                      title={value.value}
-                      className={`relative h-9 w-9 rounded-full transition-transform duration-300 ease-editorial hover:scale-110 ${
-                        isChosen ? "ring-1 ring-charcoal ring-offset-4 ring-offset-cream" : ""
-                      }`}
+                      title={soldOut ? `${value.value} — sold out` : value.value}
+                      className={`relative h-9 w-9 rounded-full transition-transform duration-300 ease-editorial ${
+                        soldOut ? "cursor-not-allowed opacity-35" : "hover:scale-110"
+                      } ${isChosen ? "ring-1 ring-charcoal ring-offset-4 ring-offset-cream" : ""}`}
                       style={{ backgroundColor: value.swatch }}
                     >
                       <span className="sr-only">
                         {value.value}
                         {delta ? `, plus ${formatPrice(delta)}` : ""}
+                        {soldOut ? ", sold out" : ""}
                       </span>
                       {/* A pale swatch needs an outline or it vanishes on cream. */}
                       <span
                         aria-hidden
                         className="absolute inset-0 rounded-full border border-charcoal/15"
                       />
+                      {/* Opacity alone reads as "de-emphasised" rather than
+                          "unavailable", and on a pale swatch it barely reads
+                          at all. The stroke is unambiguous. */}
+                      {soldOut && (
+                        <svg
+                          aria-hidden
+                          viewBox="0 0 36 36"
+                          className="absolute inset-0 h-full w-full text-charcoal"
+                        >
+                          <line x1="6" y1="30" x2="30" y2="6" stroke="currentColor" strokeWidth="1.5" />
+                        </svg>
+                      )}
                     </button>
                   );
                 }
@@ -114,20 +139,25 @@ export default function ProductOptions({
                     type="button"
                     role="radio"
                     aria-checked={isChosen}
+                    aria-disabled={soldOut}
+                    disabled={soldOut}
                     onClick={() => choose(option.id, value)}
                     className={`rounded-full border px-5 py-2.5 text-[0.72rem] uppercase tracking-[0.14em] transition-colors duration-300 ${
-                      isChosen
-                        ? "border-charcoal bg-charcoal text-cream"
-                        : "border-charcoal/25 text-charcoal/70 hover:border-charcoal/60"
+                      soldOut
+                        ? "cursor-not-allowed border-charcoal/15 text-charcoal/35 line-through"
+                        : isChosen
+                          ? "border-charcoal bg-charcoal text-cream"
+                          : "border-charcoal/25 text-charcoal/70 hover:border-charcoal/60"
                     }`}
                   >
                     {value.value}
                     {delta > 0 && (
-                      <span className={isChosen ? "text-cream/70" : "text-charcoal/45"}>
+                      <span className={isChosen && !soldOut ? "text-cream/70" : "text-charcoal/45"}>
                         {" "}
                         +{formatPrice(delta)}
                       </span>
                     )}
+                    {soldOut && <span className="sr-only"> — sold out</span>}
                   </button>
                 );
               })}

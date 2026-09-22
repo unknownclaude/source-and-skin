@@ -3,9 +3,11 @@ import { Inter, Playfair_Display } from "next/font/google";
 
 import Analytics from "@/components/Analytics";
 import Footer from "@/components/Footer";
+import { LiveCatalogueProvider } from "@/components/LiveCatalogueProvider";
 import Navbar from "@/components/Navbar";
 import { CartProvider } from "@/components/CartProvider";
 import { site } from "@/data/site";
+import { fetchLiveCatalogue } from "@/lib/shopify";
 
 import "./globals.css";
 
@@ -68,22 +70,35 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/**
+ * The live store is read once, here, and handed to every island below.
+ *
+ * It is fetched in the layout rather than per page so that the buy button, the
+ * bag and the checkout page all quote prices from the same moment. The fetch
+ * is cached and refreshed in the background, so pages stay static and no
+ * visitor ever waits on Shopify; if it fails, `null` flows down and everything
+ * falls back to the static catalogue.
+ */
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const live = await fetchLiveCatalogue();
+
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
       <body className="min-h-dvh bg-cream text-charcoal">
-        <CartProvider>
-          <a
-            href="#main"
-            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-charcoal focus:px-5 focus:py-3 focus:text-sm focus:text-cream"
-          >
-            Skip to content
-          </a>
-          <Analytics />
-          <Navbar />
-          <main id="main">{children}</main>
-          <Footer />
-        </CartProvider>
+        <LiveCatalogueProvider value={live}>
+          <CartProvider>
+            <a
+              href="#main"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-charcoal focus:px-5 focus:py-3 focus:text-sm focus:text-cream"
+            >
+              Skip to content
+            </a>
+            <Analytics />
+            <Navbar />
+            <main id="main">{children}</main>
+            <Footer />
+          </CartProvider>
+        </LiveCatalogueProvider>
       </body>
     </html>
   );
