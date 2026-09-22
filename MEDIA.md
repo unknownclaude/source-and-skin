@@ -42,40 +42,49 @@ No photographic source, no third-party rights.
 | `placeholder-texture-bark.jpg` | Sourcing |
 | `placeholder-texture-fiber.jpg` | Sourcing |
 
-### Generated — replaced another brand's photography
+### Infringing — another brand's photography, still being served
 
-These five filenames previously held another seller's product photographs.
-`scripts/clean-handle-shots.mjs` existed to remove that seller's printed card
-from underneath the product, and the commit that added it (`1cf7424`) said so
-in as many words: *"The five handled-sponge photographs had another brand's
-printed card lying under the product."* Using the photographs was the
-infringement; editing out the mark identifying their owner is the part that
-goes to flagrancy under section 115(4).
+`scripts/clean-handle-shots.mjs` existed to remove another brand's printed card
+from underneath the product in these five frames. The commit that added it
+(`1cf7424`) said so in as many words: *"The five handled-sponge photographs had
+another brand's printed card lying under the product."* Using the photographs
+is the infringement; removing the mark identifying their owner is the part
+section 115(4) of the Copyright Act treats as flagrant, and it is why these
+are listed separately from the merely unverified ones below.
 
-They now hold drawn art produced by `scripts/generate-handle-art.mjs` — the
-same coiled-mesh construction the other placeholders use, tinted per
-colourway and given the braided cords this version is named for. Nothing in
-them belongs to anybody else.
+| File | Used on |
+| --- | --- |
+| `sponge-handle-black.jpg` | Net Sponge with Handle, bundles |
+| `sponge-handle-blue.jpg` | Net Sponge with Handle, bundles |
+| `sponge-handle-pink.jpg` | Net Sponge with Handle, bundles |
+| `sponge-handle-purple.jpg` | Net Sponge with Handle, bundles |
+| `sponge-handle-white.jpg` | Net Sponge with Handle, bundles |
 
-The originals (`source-photos/handle-shots/`) and the card-removal script have
-been deleted from the working tree, along with the photograph that accompanied
-the removed testimonial.
+**Current state, and why.** These were replaced with drawn art and then put
+back at the owner's direction, who is producing photographs to replace them
+properly. This is a sequencing decision, not a disagreement about what the
+files are — the site is not live, has no domain and has taken no orders, so
+nothing is being shown to a customer while it stands.
 
-**Still to do: they remain in this repository's git history.** Deleting a file
-does not remove earlier commits, so if the repository is public the originals
-are still reachable. Clearing them needs a history rewrite
-(`git filter-repo --path source-photos/handle-shots --invert-paths`) and a
-force push, which rewrites every commit hash. Worth doing before the
-repository is made public or shared, and not worth doing casually while it
-is not.
+It stops being a sequencing decision the moment a domain points at this. The
+replacement art still exists and is one command away if the photographs are not
+ready in time:
 
-| File | Status | Used on |
-| --- | --- | --- |
-| `sponge-handle-black.jpg` | GENERATED | Net Sponge with Handle, bundles |
-| `sponge-handle-blue.jpg` | GENERATED | Net Sponge with Handle, bundles |
-| `sponge-handle-pink.jpg` | GENERATED | Net Sponge with Handle, bundles |
-| `sponge-handle-purple.jpg` | GENERATED | Net Sponge with Handle, bundles |
-| `sponge-handle-white.jpg` | GENERATED | Net Sponge with Handle, bundles |
+```bash
+node scripts/generate-handle-art.mjs
+```
+
+That regenerates all five from `scripts/generate-handle-art.mjs`, tinted per
+colourway, in the same construction the other placeholder art uses. Nothing in
+it belongs to anybody else.
+
+`npm run check:media -- --strict` fails while these are in place, which is the
+intended behaviour and the reason to run it before launch.
+
+**Removed alongside them:** the originals (`source-photos/handle-shots/`) and
+the card-removal script, neither of which is needed to serve the site and
+neither of which has been restored. They remain in git history — see the note
+at the end of this file.
 
 ### Unverified — provenance not established
 
