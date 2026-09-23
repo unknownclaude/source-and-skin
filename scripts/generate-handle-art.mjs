@@ -1,9 +1,16 @@
 /**
  * Stand-in art for the handled net sponge, one per colourway.
  *
- * These replace five photographs that were another brand's — see MEDIA.md and
- * commit 1cf7424. They are drawn, not photographed, so there is nothing in
- * them belonging to anybody else.
+ * Written to replace five photographs that were another brand's — see
+ * MEDIA.md and commit 1cf7424. Four of those five now have the owner's own
+ * photography, so in practice this fills the one remaining gap:
+ *
+ *   node scripts/generate-handle-art.mjs white
+ *
+ * It is drawn, not photographed, so there is nothing in it belonging to
+ * anybody else. It is also visibly a drawing sitting among four photographs,
+ * which is the point — the gap should be obvious rather than papered over,
+ * and it closes the moment a white frame arrives.
  *
  * Deliberately illustrative rather than photo-realistic. A drawing that is
  * obviously a drawing is honest about being a stand-in; a drawing pretending
@@ -193,7 +200,13 @@ function compose(colour, index) {
 </svg>`;
 }
 
-for (const [index, colour] of COLOURWAYS.entries()) {
+// Optional colour names limit what is generated, so this can fill a single
+// gap without overwriting colourways that now have real photographs:
+//   node scripts/generate-handle-art.mjs white
+const only = process.argv.slice(2).map((name) => name.toLowerCase());
+const wanted = only.length ? COLOURWAYS.filter((c) => only.includes(c.name)) : COLOURWAYS;
+
+for (const [index, colour] of wanted.entries()) {
   const name = `sponge-handle-${colour.name}.jpg`;
   await sharp(Buffer.from(compose(colour, index)))
     .jpeg({ quality: 90, chromaSubsampling: "4:4:4" })

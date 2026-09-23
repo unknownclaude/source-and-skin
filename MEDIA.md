@@ -42,49 +42,39 @@ No photographic source, no third-party rights.
 | `placeholder-texture-bark.jpg` | Sourcing |
 | `placeholder-texture-fiber.jpg` | Sourcing |
 
-### Infringing — another brand's photography, still being served
+### Replaced — the handled sponge colourways
 
-`scripts/clean-handle-shots.mjs` existed to remove another brand's printed card
-from underneath the product in these five frames. The commit that added it
-(`1cf7424`) said so in as many words: *"The five handled-sponge photographs had
-another brand's printed card lying under the product."* Using the photographs
-is the infringement; removing the mark identifying their owner is the part
-section 115(4) of the Copyright Act treats as flagrant, and it is why these
-are listed separately from the merely unverified ones below.
+These five filenames previously held another seller's product photographs,
+with that seller's printed card edited out from under the product. The commit
+that did it (`1cf7424`) said so in as many words. Using the photographs was the
+infringement; removing the mark identifying their owner is the part section
+115(4) of the Copyright Act treats as flagrant.
 
-| File | Used on |
-| --- | --- |
-| `sponge-handle-black.jpg` | Net Sponge with Handle, bundles |
-| `sponge-handle-blue.jpg` | Net Sponge with Handle, bundles |
-| `sponge-handle-pink.jpg` | Net Sponge with Handle, bundles |
-| `sponge-handle-purple.jpg` | Net Sponge with Handle, bundles |
-| `sponge-handle-white.jpg` | Net Sponge with Handle, bundles |
+Four are now the owner's own photography, supplied 23 September 2026. The
+fifth has no photograph yet and holds drawn art rather than the original,
+so nothing another party owns is served from this site any more.
 
-**Current state, and why.** These were replaced with drawn art and then put
-back at the owner's direction, who is producing photographs to replace them
-properly. This is a sequencing decision, not a disagreement about what the
-files are — the site is not live, has no domain and has taken no orders, so
-nothing is being shown to a customer while it stands.
+| File | Status | Source |
+| --- | --- | --- |
+| `sponge-handle-black.jpg` | OWNED | `source-photos/handled-sponge-colourways/black.png` |
+| `sponge-handle-blue.jpg` | OWNED | `source-photos/handled-sponge-colourways/blue.png` |
+| `sponge-handle-pink.jpg` | OWNED | `source-photos/handled-sponge-colourways/pink.png` |
+| `sponge-handle-purple.jpg` | OWNED | `source-photos/handled-sponge-colourways/purple.png` |
+| `sponge-handle-white.jpg` | GENERATED | `scripts/generate-handle-art.mjs white` |
 
-It stops being a sequencing decision the moment a domain points at this. The
-replacement art still exists and is one command away if the photographs are not
-ready in time:
+**The white gap is deliberate and visible.** A drawing sitting among four
+photographs looks like what it is, which is better than papering over it or
+leaving the infringing frame in place. One command closes it once a white
+frame exists:
 
 ```bash
-node scripts/generate-handle-art.mjs
+# drop white.png into source-photos/handled-sponge-colourways/, add the line
+# to IMPORTS in scripts/import-photos.mjs, then
+node scripts/import-photos.mjs
 ```
 
-That regenerates all five from `scripts/generate-handle-art.mjs`, tinted per
-colourway, in the same construction the other placeholder art uses. Nothing in
-it belongs to anybody else.
-
-`npm run check:media -- --strict` fails while these are in place, which is the
-intended behaviour and the reason to run it before launch.
-
-**Removed alongside them:** the originals (`source-photos/handle-shots/`) and
-the card-removal script, neither of which is needed to serve the site and
-neither of which has been restored. They remain in git history — see the note
-at the end of this file.
+The originals of the replaced photographs and the card-removal script were
+deleted earlier. They remain in git history — see the note at the end.
 
 ### Owned — the net sponge colourway shoot
 
@@ -113,6 +103,21 @@ of the Australian Consumer Law separately from who owns the file.
 | `sponge-purple.jpg` | Net Sponge — Regular (Purple) |
 
 Originals: `source-photos/net-sponge-colourways/`.
+
+### Owned — the handled sponge and miswak shoots
+
+Supplied by the owner on 23 September 2026 with the statement that they are
+original. Recorded on that basis, with the same two caveats as the set above:
+they arrived as screen captures rather than camera files, and they are small.
+The handled sponge frames are 394–412px wide and upscale 3.6× to 3.7×, which
+is the softest anything on this site runs at.
+
+| File | Used on |
+| --- | --- |
+| `miswak-3-pack.jpg` | Miswak Stick — 3-Pack |
+
+The four handled sponge frames are listed under "Replaced" above, because what
+they replaced is the part worth keeping a record of.
 
 ### Unverified — provenance not established
 

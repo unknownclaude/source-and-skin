@@ -41,17 +41,24 @@ for (const dir of SOURCE_DIRS) {
   }
 }
 
-// What MEDIA.md accounts for, and under which heading.
+// What MEDIA.md accounts for, and under what status.
+//
+// A row may state its own status in a column, which wins — a section can hold
+// a mix, as the handled sponge one does now that four of its five are the
+// owner's photographs and the fifth is drawn. Otherwise the status comes from
+// the section heading.
+const STATUSES = ["GENERATED", "OWNED", "LICENSED", "UNVERIFIED", "INFRINGING"];
 const media = readFileSync(join(ROOT, "MEDIA.md"), "utf8");
 const recorded = new Map();
-let status = null;
+let heading = null;
 for (const line of media.split("\n")) {
-  const heading = /^###\s+(\w+)/.exec(line);
-  if (heading) status = heading[1].toUpperCase();
+  const section = /^###\s+(\w+)/.exec(line);
+  if (section) heading = section[1].toUpperCase();
+  const explicit = STATUSES.find((s) => new RegExp(`\\|\\s*${s}\\s*\\|`).test(line));
   for (const match of line.matchAll(/`([a-z0-9._-]+\.(?:jpg|jpeg|png|webp|avif))`/gi)) {
-    // A file named under several headings keeps the first, which is the
+    // A file named more than once keeps the first mention, which is the
     // strongest claim made about it.
-    if (!recorded.has(match[1])) recorded.set(match[1], status);
+    if (!recorded.has(match[1])) recorded.set(match[1], explicit ?? heading);
   }
 }
 
