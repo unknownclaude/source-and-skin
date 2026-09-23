@@ -86,6 +86,34 @@ the card-removal script, neither of which is needed to serve the site and
 neither of which has been restored. They remain in git history — see the note
 at the end of this file.
 
+### Owned — the net sponge colourway shoot
+
+Six on-model frames, one per colourway, supplied by the owner on 23 September
+2026 with the statement that they are original. Recorded on that basis.
+
+Two details worth having on the record rather than in someone's memory: they
+arrived as screen captures (`Screenshot 2026-09-23 …`) rather than camera
+files, and they are small — 355 to 887 pixels wide against the 1200×1500 the
+layout wants, so every one is upscaled between 2.6× and 2.8×. Camera originals
+would be sharper, and `node scripts/import-sponge-shots.mjs` re-runs the whole
+import in one command if they turn up.
+
+They are on-model, which carries a question beyond copyright: a photograph of
+an identifiable person used to sell something needs that person's agreement,
+and using it in a way that implies they endorse the product engages section 18
+of the Australian Consumer Law separately from who owns the file.
+
+| File | Used on |
+| --- | --- |
+| `sponge-white.jpg` | Net Sponge — Regular (White), gallery, Ritual Bundle gallery |
+| `sponge-red.jpg` | Net Sponge — Regular (Red), lead image, bundle galleries |
+| `sponge-blue.jpg` | Net Sponge — Regular (Blue), gallery |
+| `sponge-pink.jpg` | Net Sponge — Regular (Pink), hover image |
+| `sponge-yellow.jpg` | Net Sponge — Regular (Yellow), gallery |
+| `sponge-purple.jpg` | Net Sponge — Regular (Purple) |
+
+Originals: `source-photos/net-sponge-colourways/`.
+
 ### Unverified — provenance not established
 
 Derived from files in `source-photos/`. Nothing in this repository records who
@@ -108,19 +136,13 @@ assumption is that it belongs to someone else.
 | `ritual-bundle.jpg` | The Ritual Bundle | `source-photos/model-shots/14-bundle-original.png` |
 | `the-season.jpg` | The Season | `source-photos/bundle-shots/16-season-original.png` |
 | `the-full-ritual.jpg` | The Full Ritual | `source-photos/bundle-shots/17-full-ritual-original.png` |
-| `sponge-white.jpg` | Net Sponge — Regular | `source-photos/model-shots/` |
-| `sponge-red.jpg` | Net Sponge — Regular | `source-photos/model-shots/` |
-| `sponge-blue.jpg` | Net Sponge — Regular | `source-photos/model-shots/` |
-| `sponge-pink.jpg` | Net Sponge — Regular | `source-photos/model-shots/` |
-| `sponge-yellow.jpg` | Net Sponge — Regular | `source-photos/model-shots/` |
-| `sponge-purple.jpg` | Net Sponge — Regular | `source-photos/model-shots/` |
-| `sponge-white-roll.jpg` | Net Sponge — Regular gallery | `source-photos/model-shots/` |
 
 ### Removed
 
 | File | Why |
 | --- | --- |
 | `review-lily.jpg` | Photograph of a person published beside a testimonial that the store could not have received — it had taken no orders. Removed with the review. See `data/reviews.ts`. |
+| `sponge-white-roll.jpg` | Unverified, and made redundant by the new white frame from the owner's own shoot. Dropped from both galleries that used it rather than carried forward. |
 
 ## Resolving a line
 
