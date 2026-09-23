@@ -50,9 +50,8 @@ that did it (`1cf7424`) said so in as many words. Using the photographs was the
 infringement; removing the mark identifying their owner is the part section
 115(4) of the Copyright Act treats as flagrant.
 
-Four are now the owner's own photography, supplied 23 September 2026. The
-fifth has no photograph yet and holds drawn art rather than the original,
-so nothing another party owns is served from this site any more.
+All five are now the owner's own photography, supplied 23 September 2026.
+Nothing another party owns is served from this site any more.
 
 | File | Status | Source |
 | --- | --- | --- |
@@ -60,18 +59,12 @@ so nothing another party owns is served from this site any more.
 | `sponge-handle-blue.jpg` | OWNED | `source-photos/handled-sponge-colourways/blue.png` |
 | `sponge-handle-pink.jpg` | OWNED | `source-photos/handled-sponge-colourways/pink.png` |
 | `sponge-handle-purple.jpg` | OWNED | `source-photos/handled-sponge-colourways/purple.png` |
-| `sponge-handle-white.jpg` | GENERATED | `scripts/generate-handle-art.mjs white` |
+| `sponge-handle-white.jpg` | OWNED | `source-photos/handled-sponge-colourways/white.png` |
 
-**The white gap is deliberate and visible.** A drawing sitting among four
-photographs looks like what it is, which is better than papering over it or
-leaving the infringing frame in place. One command closes it once a white
-frame exists:
-
-```bash
-# drop white.png into source-photos/handled-sponge-colourways/, add the line
-# to IMPORTS in scripts/import-photos.mjs, then
-node scripts/import-photos.mjs
-```
+The white frame arrived last and closed the one gap, so the drawn stand-in is
+no longer served. `scripts/generate-handle-art.mjs` stays in the tree: it
+regenerates any colourway in one command if a photograph ever has to come down
+in a hurry.
 
 The originals of the replaced photographs and the card-removal script were
 deleted earlier. They remain in git history — see the note at the end.
@@ -115,32 +108,38 @@ is the softest anything on this site runs at.
 | File | Used on |
 | --- | --- |
 | `miswak-3-pack.jpg` | Miswak Stick — 3-Pack |
+| `miswak-single.jpg` | Miswak Stick — Single, bundle galleries |
+| `ritual-bundle.jpg` | The Ritual Bundle |
+| `the-season.jpg` | The Season |
+| `the-full-ritual.jpg` | The Full Ritual |
+
+The single miswak and the three bundle shots were confirmed as original by the
+owner on 23 September 2026, and moved here from Unverified on that basis.
 
 The four handled sponge frames are listed under "Replaced" above, because what
 they replaced is the part worth keeping a record of.
 
 ### Unverified — provenance not established
 
-Derived from files in `source-photos/`. Nothing in this repository records who
-took them or under what permission. Several are on-model shots of an
-identifiable person, which raises a second question beyond copyright: a
-photograph of somebody used to sell a product needs that person's agreement,
-and using it to imply they endorse the product engages section 18 of the
-Australian Consumer Law independently of who owns the file.
+Three left. Nothing in this repository records who took them or under what
+permission, and the owner has not yet said. Until a line is resolved to
+`OWNED` or `LICENSED`, the honest assumption is that it belongs to someone
+else.
 
-Until each line below is resolved to `OWNED` or `LICENSED`, the honest
-assumption is that it belongs to someone else.
+`editorial-ritual-in-use.jpg` is the odd one out of everything on this site: a
+different model, and a pink-to-white ombre sponge that is not one of the six
+colourways sold. Whatever it is, it is not a photograph of a product in the
+catalogue, which is its own problem — a hero image should show what is for
+sale.
+
+`hero-poster.jpg` and `lifestyle-counter.jpg` are two crops of the same
+still life, a rolled white sponge beside a miswak stick on pale marble.
 
 | File | Used on | Source original |
 | --- | --- | --- |
 | `editorial-ritual-in-use.jpg` | Home hero | `source-photos/net-sponge-in-use.png` |
 | `hero-poster.jpg` | Home hero poster | `source-photos/model-shots/` |
 | `lifestyle-counter.jpg` | Editorial band | `source-photos/model-shots/` |
-| `miswak-single.jpg` | Miswak — Single | `source-photos/model-shots/15-miswak-original.png` |
-| `miswak-3-pack.jpg` | Miswak — 3-Pack | `source-photos/bundle-shots/` |
-| `ritual-bundle.jpg` | The Ritual Bundle | `source-photos/model-shots/14-bundle-original.png` |
-| `the-season.jpg` | The Season | `source-photos/bundle-shots/16-season-original.png` |
-| `the-full-ritual.jpg` | The Full Ritual | `source-photos/bundle-shots/17-full-ritual-original.png` |
 
 ### Removed
 

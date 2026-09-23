@@ -58,6 +58,9 @@ const IMPORTS = [
   { src: "handled-sponge-colourways/blue.png", out: "sponge-handle-blue.jpg" },
   { src: "handled-sponge-colourways/pink.png", out: "sponge-handle-pink.jpg" },
   { src: "handled-sponge-colourways/purple.png", out: "sponge-handle-purple.jpg" },
+  // Wider than the other four and shot further back, so it crops to width
+  // with the focus pushed right of centre, where the model is.
+  { src: "handled-sponge-colourways/white.png", out: "sponge-handle-white.jpg", focus: 0.55 },
 
   // Miswak 3-pack — three sticks laid diagonally on white. Padded rather than
   // cropped, because a crop tight enough to reach 4:5 takes the ends off the
