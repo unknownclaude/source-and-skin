@@ -22,6 +22,7 @@ domain goes live.
 | Status | Means |
 | --- | --- |
 | `GENERATED` | Produced by a script in this repo from nothing. Ours outright. |
+| `AI-GENERATED` | Made with an image model rather than a camera. Safe on third-party rights and needs no model release, but see the accuracy note below — it must still depict the real product. |
 | `OWNED` | Shot or commissioned by the business, with rights to use it commercially. Record who took it and when. |
 | `LICENSED` | Someone else's, used under a licence. Record the source and licence terms. |
 | `UNVERIFIED` | Nobody has established where it came from. Treat as someone else's until proven otherwise. |
@@ -50,16 +51,17 @@ that did it (`1cf7424`) said so in as many words. Using the photographs was the
 infringement; removing the mark identifying their owner is the part section
 115(4) of the Copyright Act treats as flagrant.
 
-All five are now the owner's own photography, supplied 23 September 2026.
-Nothing another party owns is served from this site any more.
+All five are now the owner's own imagery, supplied 23 September 2026 and made
+with an image model rather than a camera. Nothing another party owns is served
+from this site any more.
 
 | File | Status | Source |
 | --- | --- | --- |
-| `sponge-handle-black.jpg` | OWNED | `source-photos/handled-sponge-colourways/black.png` |
-| `sponge-handle-blue.jpg` | OWNED | `source-photos/handled-sponge-colourways/blue.png` |
-| `sponge-handle-pink.jpg` | OWNED | `source-photos/handled-sponge-colourways/pink.png` |
-| `sponge-handle-purple.jpg` | OWNED | `source-photos/handled-sponge-colourways/purple.png` |
-| `sponge-handle-white.jpg` | OWNED | `source-photos/handled-sponge-colourways/white.png` |
+| `sponge-handle-black.jpg` | AI-GENERATED | `source-photos/handled-sponge-colourways/black.png` |
+| `sponge-handle-blue.jpg` | AI-GENERATED | `source-photos/handled-sponge-colourways/blue.png` |
+| `sponge-handle-pink.jpg` | AI-GENERATED | `source-photos/handled-sponge-colourways/pink.png` |
+| `sponge-handle-purple.jpg` | AI-GENERATED | `source-photos/handled-sponge-colourways/purple.png` |
+| `sponge-handle-white.jpg` | AI-GENERATED | `source-photos/handled-sponge-colourways/white.png` |
 
 The white frame arrived last and closed the one gap, so the drawn stand-in is
 no longer served. `scripts/generate-handle-art.mjs` stays in the tree: it
@@ -69,22 +71,18 @@ in a hurry.
 The originals of the replaced photographs and the card-removal script were
 deleted earlier. They remain in git history — see the note at the end.
 
-### Owned — the net sponge colourway shoot
+### AI-generated — the net sponge colourway set
 
 Six on-model frames, one per colourway, supplied by the owner on 23 September
-2026 with the statement that they are original. Recorded on that basis.
+2026 and made with an image model. They arrived as screen captures
+(`Screenshot 2026-09-23 …`) and are small — 355 to 887 pixels wide against the
+1200×1500 the layout wants, so each is upscaled between 2.6× and 3.4×.
+`node scripts/import-photos.mjs` re-runs the import in one command if larger
+versions arrive.
 
-Two details worth having on the record rather than in someone's memory: they
-arrived as screen captures (`Screenshot 2026-09-23 …`) rather than camera
-files, and they are small — 355 to 887 pixels wide against the 1200×1500 the
-layout wants, so every one is upscaled between 2.6× and 2.8×. Camera originals
-would be sharper, and `node scripts/import-sponge-shots.mjs` re-runs the whole
-import in one command if they turn up.
-
-They are on-model, which carries a question beyond copyright: a photograph of
-an identifiable person used to sell something needs that person's agreement,
-and using it in a way that implies they endorse the product engages section 18
-of the Australian Consumer Law separately from who owns the file.
+The person in them is not a real person, which settles the model-release
+question these would otherwise raise. What replaces it is the accuracy note
+below.
 
 | File | Used on |
 | --- | --- |
@@ -97,13 +95,34 @@ of the Australian Consumer Law separately from who owns the file.
 
 Originals: `source-photos/net-sponge-colourways/`.
 
-### Owned — the handled sponge and miswak shoots
+**Accuracy is the obligation AI imagery does not escape.** A generated picture
+carries no third-party copyright and needs no model release, which removes two
+problems. It does not remove the one that matters on a product page: under
+section 18 and section 29(1)(a) of the Australian Consumer Law, an image is a
+representation about the goods, and a picture of something the customer will
+not receive is misleading however it was made.
 
-Supplied by the owner on 23 September 2026 with the statement that they are
-original. Recorded on that basis, with the same two caveats as the set above:
-they arrived as screen captures rather than camera files, and they are small.
-The handled sponge frames are 394–412px wide and upscale 3.6× to 3.7×, which
-is the softest anything on this site runs at.
+There is already one concrete instance. Every one of the five handled-sponge
+frames shows a single braided loop at the top. The product has two, one at
+each end — confirmed by the owner — and the page sells that fact directly
+("a braided cord stitched to each end", "Cord in each hand means you set the
+pressure"). The copy is right and the pictures are wrong, which is the
+harder way round to have it, because the pictures are what a customer
+believes. Worth replacing with frames showing both cords, or a photograph of
+the actual product, when there is capacity to.
+
+A second, smaller one: Australian copyright requires a human author, so
+material generated by a model may attract no copyright at all. That does not
+stop the business using these. It does mean nobody else is stopped from using
+them either.
+
+### Owned — the miswak and bundle shots
+
+Confirmed as original by the owner on 23 September 2026. The owner has
+described the net sponge and handled sponge sets as AI-generated; they have
+not said either way about these, so they stay recorded as supplied. Worth
+pinning down, because the accuracy note above applies to any of them that were
+also generated.
 
 | File | Used on |
 | --- | --- |
@@ -116,7 +135,7 @@ is the softest anything on this site runs at.
 The single miswak and the three bundle shots were confirmed as original by the
 owner on 23 September 2026, and moved here from Unverified on that basis.
 
-The four handled sponge frames are listed under "Replaced" above, because what
+The five handled sponge frames are listed under "Replaced" above, because what
 they replaced is the part worth keeping a record of.
 
 ### Unverified — provenance not established

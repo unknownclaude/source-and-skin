@@ -47,12 +47,12 @@ for (const dir of SOURCE_DIRS) {
 // a mix, as the handled sponge one does now that four of its five are the
 // owner's photographs and the fifth is drawn. Otherwise the status comes from
 // the section heading.
-const STATUSES = ["GENERATED", "OWNED", "LICENSED", "UNVERIFIED", "INFRINGING"];
+const STATUSES = ["AI-GENERATED", "GENERATED", "OWNED", "LICENSED", "UNVERIFIED", "INFRINGING"];
 const media = readFileSync(join(ROOT, "MEDIA.md"), "utf8");
 const recorded = new Map();
 let heading = null;
 for (const line of media.split("\n")) {
-  const section = /^###\s+(\w+)/.exec(line);
+  const section = /^###\s+([\w-]+)/.exec(line);
   if (section) heading = section[1].toUpperCase();
   const explicit = STATUSES.find((s) => new RegExp(`\\|\\s*${s}\\s*\\|`).test(line));
   for (const match of line.matchAll(/`([a-z0-9._-]+\.(?:jpg|jpeg|png|webp|avif))`/gi)) {
